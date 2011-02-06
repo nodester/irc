@@ -37,6 +37,8 @@
     var body_loaded = function () {
       sock = new io.Socket();
       sock.on('message', handleMessage);
+      sock.on('connection', alert('connection'));
+      sock.on('connect', alert('connect'));
       sock.connect(function () {
         // ts = document.getElementById('timestamp');
         var name = prompt("Please enter your nickname:", "");
