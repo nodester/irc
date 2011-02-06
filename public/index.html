@@ -70,7 +70,6 @@
       var p = document.createElement('p');
       p.innerHTML = "<p>" + namewrap[0] + from + namewrap[1] + ": " + message + "</p>";
       chatBody.appendChild(p);
-      chatBody.appendChild(document.createElement('br'));
     }
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
