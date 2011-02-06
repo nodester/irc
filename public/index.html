@@ -8,8 +8,8 @@
 <body onload="body_loaded();">
   <div id="top_section">
     <div id="nick_list">
-      <ol id="nick_ol">
-      </ol>
+      <ul id="nick_ul">
+      </ul>
     </div>
     <table id="chat_body">
     </table>
@@ -27,12 +27,15 @@
     var nickname = null;
     var chatBody = null;
     var textInput = null;
+    var nick_ul = null;
+    var nick_lis = {};
     var body_loaded = function () {
       sock = new io.Socket();
       sock.on('message', handleMessage);
       sock.connect();
       chatBody = document.getElementById('chat_body');
       textInput = document.getElementById('text_input');
+      nick_ul = document.getElementById('nick_ul');
     };
     var getNickname = function () {
       var name = prompt("Please enter your nickname:", "");
@@ -62,7 +65,44 @@
           + '<td class="msg">' + message + '</td>';
       chatBody.appendChild(row);
       scrollBody();
-    }
+    };
+    var appendEvent = function (from, event, s) {
+      var row = document.createElement('tr');
+      if (typeof s != 'undefined' && s == true) {
+        row.className = 'me';
+      }
+      switch (event) {
+        case "join":
+          var message = "<u>joined the channel</u>";
+          break;
+        case "quit":
+          var message = "<u>left the channel</u>";
+          break;
+        default:
+          var message = "<u>unknown event type oO</u>";
+          break;
+      }
+      row.innerHTML = ''
+          + '<th class="author">' + from + '</th>'
+          + '<td class="msg">' + message + '</td>';
+      chatBody.appendChild(row);
+      scrollBody();
+    };
+    var addNickToList = function (nick) {
+      var li = document.createElement('li');
+      li.value = nick;
+      li.textContent = nick;
+      nick_lis[nick] = li;
+      nick_ul.appendChild(li);
+      sortList(nick_ul);
+    };
+    var delNickFromList = function (nick) {
+      if (nick_lis.hasOwnProperty(nick)) {
+        nick_ul.removeChild(nick_lis[nick]);
+        delete nick_lis[nick];
+        sortList(nick_ul);
+      }
+    };
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
       if (nickname === null) {
@@ -73,9 +113,18 @@
         }
       } else {
         if (obj.hasOwnProperty('messagetype')) {
+          var s = (obj.from == nickname) ? true : false;
           switch (obj.messagetype) {
             case "message":
               appendMessage(obj.from, obj.message, false);
+              break;
+            case "join":
+              appendEvent(obj.from, obj.messagetype, s);
+              addNickToList(obj.from);
+              break;
+            case "quit":
+              appendEvent(obj.from, obj.messagetype, s);
+              delNickFromList(obj.from);
               break;
             default:
               alert(data);
@@ -95,15 +144,33 @@
       textInput.value = "";
     };
     var handleSubmit = function (e) {
-      if (window.event) {
-        e = window.event;
-      }
       if (textInput.value !== '') {
         sendMessage();
       }
-    }
+    };
     var scrollBody = function() {
       document.body.scrollTop = document.body.clientHeight;
+    };
+    var sortList = function (oUl) {
+      for(var i in oUl.childNodes) {
+        var x = oUl.childNodes[i];
+        for(var j in oUl.childNodes) {
+      		var y = oUl.childNodes[j];
+      		if((x.innerText != 'undefined' || y.innerText != 'undefined') 
+      		  && x.innerText > y.innerText) {
+      			if(oUl.firstChild != x)
+      				oUl.insertBefore(y, x);
+      		}
+      	}
+      }
+    }
+    /* Define innerText for Mozilla based browsers */
+    if((typeof HTMLElement != 'undefined') && (HTMLElement.prototype.__defineGetter__ != 'undefined')) {
+    	HTMLElement.prototype.__defineGetter__("innerText", function () {
+      	var r = this.ownerDocument.createRange();
+      	r.selectNodeContents(this);
+      	return r.toString().toLowerCase();
+    	});
     }
   </script>
 </div>

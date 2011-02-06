@@ -8,15 +8,18 @@ body {
   padding: 0 0 30px;
 }
 #nick_list {
-  display: none;
   float: right;
   width: 150px;
 }
+ul {
+  list-style-type: none;
+}
 #chat_body {
+  float: left;
   padding: 10px;
   width: 100%;
 }
-#chat_body,
+
 #chat_body th,
 #chat_body td {
   vertical-align: top;

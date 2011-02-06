@@ -56,6 +56,21 @@ socket.on('connection', function(client) {
             irc.privmsg(message.person.nick, "I can only talk in #nodester.");
           }
         });
+        irc.addListener('join', function (message) {
+          client.send(JSON.stringify({
+            messagetype: "join",
+            from: message.person.nick,
+            channel: message.params[0]
+          }));
+        });
+        irc.addListener('quit', function (message) {
+          client.send(JSON.stringify({
+            messagetype: "quit",
+            from: message.person.nick,
+            channel: message.params[0]
+          }));
+        });
+        irc.addListener('error', function () {console.log(arguments)});
       } else {
         // Maybe handle updaing of nicks one day :)
       }
