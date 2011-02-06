@@ -1,0 +1,77 @@
+<html>
+<head>
+  <title>Bejesus IRC Channel</title>
+  <style type="text/css">
+    * {
+      margin: 0px;
+    }
+    body, html {
+      margin: 0px;
+      padding: 0px;
+      color: #000;
+      background:#a7a09a;
+      height: 98%;
+    }
+    div#top_section {
+      min-height: 100%;
+      height: auto !important;
+      height: 100%;
+    }
+    div#nick_list {
+      float: right;
+      width: 150px;
+    }
+    div#chat_body {
+      float: left;
+    }
+    div#chat_bar .push {
+      clear: both;
+      height: 2em;
+    }
+  </style>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+    var sock = null;
+    // var ts = null;
+    var body_loaded = function () {
+      sock = new io.Socket();
+      sock.on('message', handleMessage);
+      sock.connect();
+      // ts = document.getElementById('timestamp');
+      var name = prompt("Please enter your nickname:", "");
+      switch (name) {
+        case "":
+          alert("You did not input a nickname, please reload if you wish to connect.");
+          sock.disconnect();
+          break;
+        case null:
+          alert("Login cancelled, please reload if you wish to connect.");
+          sock.disconnect();
+          break;
+        default:
+          sock.send(JSON.stringify({ nickname: name }));
+          break;
+      }
+    };
+    var handleMessage = function (data) {
+      var obj = JSON.parse(data);
+      // ts.textContent = obj.timestamp;
+    };
+  </script>
+</head>
+<body onload="body_loaded();">
+  <div id="top_section">
+    <div id="nick_list">
+      <ol id="nick_ol">
+        <li>dan</li>
+      </ol>
+    </div>
+    <div id="chat_body">
+      <span>Body</span>
+    </div>
+  </div>
+  <div id="chat_bar">
+    <input type="text" id="text_input"></input><button>Send</button>
+  </div>
+</body>
+</html>
