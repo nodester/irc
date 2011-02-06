@@ -1,36 +1,27 @@
+<!doctype html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Bejesus IRC Channel</title>
-  <style type="text/css">
-    * {
-      margin: 0px;
-    }
-    body, html {
-      margin: 0px;
-      padding: 0px;
-      color: #000;
-      background:#a7a09a;
-      height: 98%;
-    }
-    div#top_section {
-      min-height: 100%;
-      height: auto !important;
-      height: 100%;
-    }
-    div#nick_list {
-      float: right;
-      width: 150px;
-    }
-    div#chat_body {
-      float: left;
-    }
-    div#chat_bar .push {
-      clear: both;
-      height: 2em;
-    }
-  </style>
-  <script src="/socket.io/socket.io.js"></script>
-  <script type="text/javascript">
+  <link rel="stylesheet" href="css/irc.css" >
+</head>
+<body onload="body_loaded();">
+  <div id="top_section">
+    <div id="nick_list">
+      <ol id="nick_ol">
+      </ol>
+    </div>
+    <table id="chat_body">
+    </table>
+  </div>
+  <form id="chat_bar" onsubmit="handleSubmit(); return false;">
+    <input type="text" id="text_input" size="80">
+    <button type="submit">Send</button>
+  </form>
+
+<div id="js">
+<script src="/socket.io/socket.io.js"></script>
+  <script>
     var sock = null;
     var rv = null;
     var nickname = null;
@@ -62,14 +53,14 @@
       }
     };
     var appendMessage = function (from, message, s) {
+      var row = document.createElement('tr');
       if (typeof s != 'undefined' && s == true) {
-        var namewrap = ["<b><i>", "</i></b>"];
-      } else {
-        var namewrap = ["<b>", "</b>"];
+        row.className = 'me';
       }
-      var p = document.createElement('p');
-      p.innerHTML = "<p>" + namewrap[0] + from + namewrap[1] + ": " + message + "</p>";
-      chatBody.appendChild(p);
+      row.innerHTML = ''
+          + '<th class="author">' + from + '</th>'
+          + '<td class="msg">' + message + '</td>';
+      chatBody.appendChild(row);
     }
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
@@ -102,27 +93,15 @@
       }));
       textInput.value = "";
     };
-    var handleKeyPress = function (e) {
+    var handleSubmit = function (e) {
       if (window.event) {
         e = window.event;
       }
-      if (e.keyCode == 13) {
+      if (textInput.value !== '') {
         sendMessage();
       }
     }
   </script>
-</head>
-<body onload="body_loaded();">
-  <div id="top_section">
-    <div id="nick_list">
-      <ol id="nick_ol">
-      </ol>
-    </div>
-    <div id="chat_body">
-    </div>
-  </div>
-  <div id="chat_bar">
-    <input type="text" id="text_input" onkeypress="handleKeyPress(event);" size="80"></input><button onClick="sendMessage();">Send</button>
-  </div>
+</div>
 </body>
 </html>
