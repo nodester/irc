@@ -71,6 +71,6 @@ socket.on('connection', function(client) {
   });
 
   client.on('disconnect', function() {
-
+    irc.quit();
   });
 });

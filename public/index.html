@@ -36,7 +36,6 @@
     var nickname = null;
     var chatBody = null;
     var textInput = null;
-    // var ts = null;
     var body_loaded = function () {
       sock = new io.Socket();
       sock.on('message', handleMessage);
@@ -61,11 +60,21 @@
           return name;
           break;
       }
+    };
+    var appendMessage = function (from, message, s) {
+      if (typeof s != 'undefined' && s == true) {
+        var namewrap = ["<b><i>", "</i></b>"];
+      } else {
+        var namewrap = ["<b>", "</b>"];
+      }
+      var p = document.createElement('p');
+      p.innerHTML = "<p>" + namewrap[0] + from + namewrap[1] + ": " + message + "</p>";
+      chatBody.appendChild(p);
+      chatBody.appendChild(document.createElement('br'));
     }
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
       if (nickname === null) {
-        alert("null nickname");
         var tmp = getNickname();
         if (tmp !== null) {
           nickname = tmp;
@@ -75,9 +84,7 @@
         if (obj.hasOwnProperty('messagetype')) {
           switch (obj.messagetype) {
             case "message":
-              var p = document.createElement('p');
-              p.innerHTML = "<p><b>" + escape(obj.from) + "</b>: " + escape(obj.message) + "</p>";
-              chatBody.appendChild(p);
+              appendMessage(obj.from, obj.message, false);
               break;
             default:
               alert(data);
@@ -89,27 +96,34 @@
       }
     };
     var sendMessage = function () {
+      appendMessage(nickname, textInput.value, true);
       sock.send(JSON.stringify({
         messagetype: "message",
         message: textInput.value
       }));
       textInput.value = "";
     };
+    var handleKeyPress = function (e) {
+      if (window.event) {
+        e = window.event;
+      }
+      if (e.keyCode == 13) {
+        sendMessage();
+      }
+    }
   </script>
 </head>
 <body onload="body_loaded();">
   <div id="top_section">
     <div id="nick_list">
       <ol id="nick_ol">
-        <li>dan</li>
       </ol>
     </div>
     <div id="chat_body">
-      <span>Body</span>
     </div>
   </div>
   <div id="chat_bar">
-    <input type="text" id="text_input"></input><button onClick="sendMessage();">Send</button>
+    <input type="text" id="text_input" onkeypress="handleKeyPress(event);"></input><button onClick="sendMessage();">Send</button>
   </div>
 </body>
 </html>
