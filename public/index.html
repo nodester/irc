@@ -76,7 +76,7 @@
           switch (obj.messagetype) {
             case "message":
               var p = document.createElement('p');
-              p.innerHtml = "<b>" + obj.from + "</b>: " + obj.message;
+              p.innerHTML = "<p><b>" + esc(obj.from) + "</b>: " + esc(obj.message) + "</p>";
               chatBody.appendChild(p);
               break;
             default:
