@@ -89,7 +89,7 @@
     var sendMessage = function () {
       sock.send(JSON.stringify({
         type: "message",
-        message: textInput.value;
+        message: textInput.value
       }));
       textInput.value = "";
     };
