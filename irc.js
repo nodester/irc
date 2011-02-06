@@ -46,7 +46,7 @@ socket.on('connection', function(client) {
         irc.addListener('privmsg', function (message) {
           if (message.params[0] == '#nodester') {
             client.send(JSON.stringify({
-              type: "message",
+              messagetype: "message",
               from: message.person.nick,
               channel: message.params[0],
               message: message.params[1]
@@ -55,8 +55,8 @@ socket.on('connection', function(client) {
             irc.privmsg(message.person.nick, "I can only talk in #nodester.");
           }
         });
-      } else if (obj.hasOwnProperty('type')) {
-        switch (obj['type']) {
+      } else if (obj.hasOwnProperty('messagetype')) {
+        switch (obj.messagetype) {
           case "message":
             irc.privmsg("#nodester", obj.message);
             break;

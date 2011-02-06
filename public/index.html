@@ -72,14 +72,15 @@
         }
         // rv = sock.send(JSON.stringify({ nickname: name }));
       } else {
-        if (obj.hasOwnProperty('type')) {
-          switch (obj['type']) {
+        if (obj.hasOwnProperty('messagetype')) {
+          switch (obj.messagetype) {
             case "message":
               var p = document.createElement('p');
               p.innerHtml = "<b>" + obj.from + "</b>: " + obj.message;
               chatBody.appendChild(p);
               break;
             default:
+              alert(data);
               break;
           }
         }
@@ -88,7 +89,7 @@
     };
     var sendMessage = function () {
       sock.send(JSON.stringify({
-        type: "message",
+        messagetype: "message",
         message: textInput.value
       }));
       textInput.value = "";
