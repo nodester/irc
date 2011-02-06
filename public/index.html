@@ -65,12 +65,12 @@
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
       if (nickname === null) {
+        alert("null nickname");
         var tmp = getNickname();
         if (tmp !== null) {
           nickname = tmp;
           rv = sock.send(JSON.stringify({ nickname: nickname }));
         }
-        // rv = sock.send(JSON.stringify({ nickname: name }));
       } else {
         if (obj.hasOwnProperty('messagetype')) {
           switch (obj.messagetype) {
@@ -85,7 +85,6 @@
           }
         }
       }
-      // ts.textContent = obj.timestamp;
     };
     var sendMessage = function () {
       sock.send(JSON.stringify({

@@ -55,15 +55,17 @@ socket.on('connection', function(client) {
             irc.privmsg(message.person.nick, "I can only talk in #nodester.");
           }
         });
-      } else if (obj.hasOwnProperty('messagetype')) {
-        switch (obj.messagetype) {
-          case "message":
-            irc.privmsg("#nodester", obj.message);
-            break;
-          default:
-            console.log(data);
-            break;
-        }
+      } else {
+        // Maybe handle updaing of nicks one day :)
+      }
+    } else if (obj.hasOwnProperty('messagetype')) {
+      switch (obj.messagetype) {
+        case "message":
+          irc.privmsg("#nodester", obj.message);
+          break;
+        default:
+          console.log(data);
+          break;
       }
     }
   });
