@@ -21,9 +21,51 @@ var socket = io.listen(app, {
 });
 
 socket.on('connection', function(client) {
+  var irc = null;
+  var nickname = null;
   client.send(JSON.stringify({connected: true}));
   client.on('message', function(data) {
-    console.log(data);
+    var obj = JSON.parse(data);
+    if (obj.hasOwnProperty('nickname')) {
+      if (irc === null) {
+        nickname = obj.nickname;
+        irc = new ircjs({
+          server: 'holmes.freenode.net',
+          port: 6667,
+          nick: obj.nickname,
+          user: {
+            username: nickname,
+            hostname: 'irc.bejes.us',
+            servername: 'holmes.freenode.net',
+            realname: nickname + ' via http://irc.bejes.us/'
+          }
+        });
+        irc.connect(function () {
+          irc.join('#nodester');
+        });
+        irc.addListener('privmsg', function (message) {
+          if (message.params[0] == '#nodester') {
+            client.send(JSON.stringify({
+              type: "message",
+              from: message.person.nick,
+              channel: message.params[0],
+              message: message.params[1]
+            }));
+          } else {
+            irc.privmsg(message.person.nick, "I can only talk in #nodester.");
+          }
+        });
+      } else if (obj.hasOwnProperty('type')) {
+        switch (obj['type']) {
+          case "message":
+            irc.privmsg("#nodester", obj.message);
+            break;
+          default:
+            console.log(data);
+            break;
+        }
+      }
+    }
   });
 
   client.on('disconnect', function() {

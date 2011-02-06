@@ -34,11 +34,15 @@
     var sock = null;
     var rv = null;
     var nickname = null;
+    var chatBody = null;
+    var textInput = null;
     // var ts = null;
     var body_loaded = function () {
       sock = new io.Socket();
       sock.on('message', handleMessage);
       sock.connect();
+      chatBody = document.getElementById('chat_body');
+      textInput = document.getElementById('text_input');
     };
     var getNickname = function () {
       var name = prompt("Please enter your nickname:", "");
@@ -67,8 +71,27 @@
           rv = sock.send(JSON.stringify({ nickname: nickname }));
         }
         // rv = sock.send(JSON.stringify({ nickname: name }));
+      } else {
+        if (obj.hasOwnProperty('type')) {
+          switch (obj['type']) {
+            case "message":
+              var p = document.createElement('p');
+              p.innerHtml = "<b>" + obj.from + "</b>: " + obj.message;
+              chatBody.appendChild(p);
+              break;
+            default:
+              break;
+          }
+        }
       }
       // ts.textContent = obj.timestamp;
+    };
+    var sendMessage = function () {
+      sock.send(JSON.stringify({
+        type: "message",
+        message: textInput.value;
+      }));
+      textInput.value = "";
     };
   </script>
 </head>
@@ -84,7 +107,7 @@
     </div>
   </div>
   <div id="chat_bar">
-    <input type="text" id="text_input"></input><button>Send</button>
+    <input type="text" id="text_input"></input><button onClick="sendMessage();">Send</button>
   </div>
 </body>
 </html>
