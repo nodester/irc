@@ -33,31 +33,35 @@
   <script type="text/javascript">
     var sock = null;
     var rv = null;
+    var nickname = null;
     // var ts = null;
     var body_loaded = function () {
       sock = new io.Socket();
       sock.on('message', handleMessage);
-      sock.on('connection', function () {
-        // ts = document.getElementById('timestamp');
-        var name = prompt("Please enter your nickname:", "");
-        switch (name) {
-          case "":
-            alert("You did not input a nickname, please reload if you wish to connect.");
-            sock.disconnect();
-            break;
-          case null:
-            alert("Login cancelled, please reload if you wish to connect.");
-            sock.disconnect();
-            break;
-          default:
-            rv = sock.send(JSON.stringify({ nickname: name }));
-            break;
-        }
-      });
       sock.connect();
     };
+    var getNickname = function () {
+      var name = prompt("Please enter your nickname:", "");
+      switch (name) {
+        case "":
+          alert("You did not input a nickname, please reload if you wish to connect.");
+          sock.disconnect();
+          break;
+        case null:
+          alert("Login cancelled, please reload if you wish to connect.");
+          sock.disconnect();
+          break;
+        default:
+          return name;
+          break;
+      }
+    }
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
+      if (nickname === null) {
+        var tmp = getNickname();
+        // rv = sock.send(JSON.stringify({ nickname: name }));
+      }
       // ts.textContent = obj.timestamp;
     };
   </script>

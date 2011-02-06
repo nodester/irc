@@ -21,7 +21,7 @@ var socket = io.listen(app, {
 });
 
 socket.on('connection', function(client) {
-  
+  client.send(JSON.stringify({connected: true}));
   client.on('message', function(data) {
     console.log(data);
   });
