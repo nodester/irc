@@ -46,10 +46,12 @@
         case "":
           alert("You did not input a nickname, please reload if you wish to connect.");
           sock.disconnect();
+          return null;
           break;
         case null:
           alert("Login cancelled, please reload if you wish to connect.");
           sock.disconnect();
+          return null;
           break;
         default:
           return name;
@@ -60,6 +62,10 @@
       var obj = JSON.parse(data);
       if (nickname === null) {
         var tmp = getNickname();
+        if (tmp !== null) {
+          nickname = tmp;
+          rv = sock.send(JSON.stringify({ nickname: nickname }));
+        }
         // rv = sock.send(JSON.stringify({ nickname: name }));
       }
       // ts.textContent = obj.timestamp;
