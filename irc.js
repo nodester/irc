@@ -17,23 +17,16 @@ app.listen(process.ENV['app_port'], process.ENV['app_host']);
 
 var socket = io.listen(app, {
   flashPolicyServer: false,
-  transports: ['htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']
+  transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']
 });
 
 socket.on('connection', function(client) {
-/*  var my_timer;
-  var my_client = client;
-  my_timer = setInterval(function () {
-    my_client.send(JSON.stringify({ timestamp: (new Date()).getTime() }));
-  }, 1000);
-*/
   
   client.on('message', function(data) {
     console.log(data);
   });
 
   client.on('disconnect', function() {
-    clearTimeout(my_timer);
-    console.log('disconnect');
+
   });
 });
