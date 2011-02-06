@@ -61,6 +61,7 @@
           + '<th class="author">' + from + '</th>'
           + '<td class="msg">' + message + '</td>';
       chatBody.appendChild(row);
+      scrollBody();
     }
     var handleMessage = function (data) {
       var obj = JSON.parse(data);
@@ -100,6 +101,9 @@
       if (textInput.value !== '') {
         sendMessage();
       }
+    }
+    var scrollBody = function() {
+      document.body.scrollTop = document.body.clientHeight;
     }
   </script>
 </div>
