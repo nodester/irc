@@ -89,12 +89,14 @@
       scrollBody();
     };
     var addNickToList = function (nick) {
-      var li = document.createElement('li');
-      li.value = nick;
-      li.textContent = nick;
-      nick_lis[nick] = li;
-      nick_ul.appendChild(li);
-      sortList(nick_ul);
+      if (!nick_lis.hasOwnProperty(nick)) {
+        var li = document.createElement('li');
+        li.value = nick;
+        li.textContent = nick;
+        nick_lis[nick] = li;
+        nick_ul.appendChild(li);
+        sortList(nick_ul);
+      }
     };
     var delNickFromList = function (nick) {
       if (nick_lis.hasOwnProperty(nick)) {
@@ -169,7 +171,7 @@
     	HTMLElement.prototype.__defineGetter__("innerText", function () {
       	var r = this.ownerDocument.createRange();
       	r.selectNodeContents(this);
-      	return r.toString().toLowerCase();
+      	return r.toString();
     	});
     }
   </script>

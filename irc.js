@@ -33,7 +33,7 @@ socket.on('connection', function(client) {
         irc = new ircjs({
           server: 'holmes.freenode.net',
           port: 6667,
-          nick: obj.nickname,
+          nick: nickname,
           user: {
             username: nickname,
             hostname: 'irc.bejes.us',
@@ -57,6 +57,19 @@ socket.on('connection', function(client) {
           }
         });
         irc.addListener('join', function (message) {
+          if (message.person.nick == nickname) {
+            setTimeout(function () {
+              irc.names("#nodester", function (chan, names) {
+                for(var i in names) {
+                  client.send(JSON.stringify({
+                    messagetype: "join",
+                    from: names[i],
+                    channel: chan
+                  }));
+                }
+              })
+            }, 1500);
+          };
           client.send(JSON.stringify({
             messagetype: "join",
             from: message.person.nick,
@@ -70,6 +83,7 @@ socket.on('connection', function(client) {
             channel: message.params[0]
           }));
         });
+
         irc.addListener('error', function () {console.log(arguments)});
       } else {
         // Maybe handle updaing of nicks one day :)
