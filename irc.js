@@ -14,7 +14,8 @@ app.configure(function(){
 app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
-app.listen(process.ENV['app_port'], process.ENV['app_host']);
+// app.listen(process.env['app_port'], process.env['app_host']);
+app.listen(8370, 8370);
 
 var socket = io.listen(app, {
   flashPolicyServer: false,
@@ -31,14 +32,14 @@ socket.on('connection', function(client) {
       if (irc === null) {
         nickname = obj.nickname;
         irc = new ircjs({
-          server: 'holmes.freenode.net',
+          server: 'irc.freenode.net',
           port: 6667,
           nick: nickname,
           user: {
             username: nickname,
-            hostname: 'irc.bejes.us',
-            servername: 'holmes.freenode.net',
-            realname: nickname + ' via http://irc.bejes.us/'
+            hostname: 'irc.nodester.com',
+            servername: 'irc.freenode.net',
+            realname: nickname + ' via http://irc.nodester.com/'
           }
         });
         irc.connect(function () {
