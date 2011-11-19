@@ -4,7 +4,7 @@ var io = require('socket.io');
 var express = require('express');
 var ircjs = require('irc-js');
  
-var app = express.createServer();
+var app = express.createServer(); 
 
 app.configure(function(){
 //  app.use(express.compiler({ src: __dirname + '/public', enable: ['stylus'] }));
