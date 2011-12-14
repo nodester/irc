@@ -8,7 +8,7 @@ var app = express.createServer();
 
 app.configure(function(){
 //  app.use(express.compiler({ src: __dirname + '/public', enable: ['stylus'] }));
-  app.use(express.staticProvider(__dirname + '/public'));
+  app.use(express.static(__dirname + '/public'));
 });
 
 app.get('/', function(req, res, next){
