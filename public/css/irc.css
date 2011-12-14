@@ -6,6 +6,9 @@ body {
   color: #222;
   font: 12px Helvetica, Arial, sans-serif;
   padding: 0 0 30px;
+  background-image:url('../nodesterbw_rightbig.png');
+  opacity:0.7;
+
 }
 #top_section {
   padding: 0 151px 0 0;
