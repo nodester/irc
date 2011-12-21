@@ -6,6 +6,10 @@ var ircjs = require('irc-js');
  
 var app = express.createServer(); 
 
+process.on('uncaughtException', function (err) {
+	console.log('Uncaught error: ' + err.stack);
+});
+
 app.configure(function(){
 //  app.use(express.compiler({ src: __dirname + '/public', enable: ['stylus'] }));
   app.use(express.static(__dirname + '/public'));
