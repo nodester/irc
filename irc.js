@@ -4,7 +4,7 @@ var io = require('socket.io');
 var express = require('express');
 var ircjs = require('irc-js');
  var cfg = {
-   channel:'#prueba01'
+   channel:'#nodester'
  }
 var app = express.createServer(); 
 var io = require('socket.io').listen(app)
@@ -27,10 +27,6 @@ app.listen(process.env['app_port'] ||80);
 
 io.sockets.on('connection', function (client) {
   var socket = client;
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
   var irc = null;
   var nickname = null;
   client.on('message', function(data) {
