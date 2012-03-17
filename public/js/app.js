@@ -44,7 +44,7 @@ $(document).ready(function(){
     var head = document.getElementsByTagName('head')[0];
     head.appendChild(meta);
     statusMsg.text(' Joining as '+nick+'...' )
-    sock = io.connect('http://numbus/');
+    sock = io.connect('http://ircbeta.nodester.com/');
     sock.on('message', handleMessage);
     sock.send(JSON.stringify({ nickname: nick }));
     $('#chat_wrapper').removeClass('off');
