@@ -1,1 +1,4 @@
 .bejesus.appconfig
+*.un~
+node_modules
+test.js

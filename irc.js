@@ -3,8 +3,11 @@ var fs = require('fs');
 var io = require('socket.io');
 var express = require('express');
 var ircjs = require('irc-js');
- 
+ var cfg = {
+   channel:'#prueba01'
+ }
 var app = express.createServer(); 
+var io = require('socket.io').listen(app)
 
 process.on('uncaughtException', function (err) {
 	console.log('Uncaught error: ' + err.stack);
@@ -19,18 +22,19 @@ app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
 // app.listen(process.env['app_port'], process.env['app_host']);
-app.listen(8370, 8370);
+app.listen(process.env['app_port'] ||80);
 
-var socket = io.listen(app, {
-  flashPolicyServer: false,
-  transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']
-});
 
-socket.on('connection', function(client) {
+io.sockets.on('connection', function (client) {
+  var socket = client;
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
+    console.log(data);
+  });
   var irc = null;
   var nickname = null;
-  client.send(JSON.stringify({connected: true}));
   client.on('message', function(data) {
+    console.log(data)
     var obj = JSON.parse(data);
     if (obj.hasOwnProperty('nickname')) {
       if (irc === null) {
@@ -46,11 +50,12 @@ socket.on('connection', function(client) {
             realname: nickname + ' via http://irc.nodester.com/'
           }
         });
+        console.log(irc)
         irc.connect(function () {
-          irc.join('#nodester');
+          irc.join(cfg.channel);
         });
         irc.addListener('privmsg', function (message) {
-          if (message.params[0] == '#nodester') {
+          if (message.params[0] == cfg.channel) {
             client.send(JSON.stringify({
               messagetype: "message",
               from: message.person.nick,
@@ -64,7 +69,7 @@ socket.on('connection', function(client) {
         irc.addListener('join', function (message) {
           if (message.person.nick == nickname) {
             setTimeout(function () {
-              irc.names("#nodester", function (chan, names) {
+              irc.names(cfg.channel, function (chan, names) {
                 for(var i in names) {
                   client.send(JSON.stringify({
                     messagetype: "join",
@@ -96,7 +101,7 @@ socket.on('connection', function(client) {
     } else if (obj.hasOwnProperty('messagetype')) {
       switch (obj.messagetype) {
         case "message":
-          irc.privmsg("#nodester", obj.message);
+          irc.privmsg(cfg.channel, obj.message);
           break;
         default:
           console.log(data);
@@ -106,6 +111,8 @@ socket.on('connection', function(client) {
   });
 
   client.on('disconnect', function() {
-    irc.quit();
+    if (irc){
+      irc.quit(); 
+    }
   });
 });
