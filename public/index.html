@@ -15,6 +15,7 @@
     </section>
     <section class="rocket">
     <h2>IRC #nodester channel</h2>
+    <p class="off" style="color:red;" id="wrong"> You need to specified a valid nickname</p>
     <form>
       <input type="text" id="nick" class="btn" placeholder="username">
       <a href="#" class="btn btn-info" id="join"> Join</a>
@@ -45,10 +46,9 @@
   <p id="statusmsg"></p>
 </div>
 <div id="js">
-  <script src="//code.jquery.com/jquery.js" type="text/javascript"></script>
-  <script type="text/javascript" src="/js/spin.min.js"></script>
+  <script src="http://numbus:8000/assets/javascripts/jquery.min.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/plugins.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script type="text/javascript" src="/js/tinycon.min.js"></script>
   <script src="/js/app.js" type="text/javascript"></script>
 </div>
 </body>

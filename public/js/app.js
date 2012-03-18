@@ -1,15 +1,13 @@
 $(document).ready(function(){
-  var sock = null;
-  var rv = null;
-  var nickname = null;
-  var chatBody = null;
+  var sock      = null;
+  var rv        = null;
+  var nickname  = null;
   var textInput = $('#text_input');
-  var nick_ul = null;
-  var nick_lis = {};
-  var logBox = $('#wrapper');
+  var nick_lis  = {};
+  var logBox    = $('#wrapper');
   var statusBar = $('#statusBar');
   var statusMsg = $('#statusmsg')
-  var sendMsg = $('#sendMessage')
+  var sendMsg   = $('#sendMessage')
   var chatBody  = $('#chat_body');
   var nick_ul   = $('#nick_ul');
   window.counter = 0;
@@ -17,39 +15,43 @@ $(document).ready(function(){
     return document.getElementById(el);
   }
   var opts = {
-    lines: 12,
-    length: 7,
-    width: 4,
-    radius: 10,
-    color: '#000',
-    speed: 1,
-    trail: 60,
-    shadow: false,
-    hwaccel: false,
-    className: 'spinner',
-    zIndex: 2e9,
-    top: 'auto',
-    left: 'auto'
+    lines     : 12,
+    length    : 7,
+    width     : 4,
+    radius    : 10,
+    color     : '#000',
+    speed     : 1,
+    trail     : 60,
+    shadow    : false,
+    hwaccel   : false,
+    className : 'spinner',
+    zIndex    : 2e9,
+    top       : 'auto',
+    left      : 'auto'
   };
 
   get('join').addEventListener('click',function(e){
-    window.target = document.getElementById('spiner');
-    window.spinner = new Spinner(opts).spin(target);
-    logBox.slideToggle();
-    statusBar.removeClass('off')
-    statusBar.addClass('loader box')
-    var nick = getNickname(get('nick').value);
-    var meta = document.createElement('meta');
-    meta.content = nick; 
-    meta.name = 'nick';
-    var head = document.getElementsByTagName('head')[0];
-    head.appendChild(meta);
-    window.nick = $('[name="nick"]').attr('content');
-    statusMsg.text(' Joining as '+nick+'...' )
-    sock = io.connect('http://'+window.location.host);
-    sock.on('message', handleMessage);
-    sock.send(JSON.stringify({ nickname: nick }));
-    $('#chat_wrapper').removeClass('off');
+    if (get('nick').value != ''){
+      window.target = document.getElementById('spiner');
+      window.spinner = new Spinner(opts).spin(target);
+      logBox.slideToggle();
+      statusBar.removeClass('off')
+      statusBar.addClass('loader box')
+      var nick = getNickname(get('nick').value);
+      var meta = document.createElement('meta');
+      meta.content = nick; 
+      meta.name = 'nick';
+      var head = document.getElementsByTagName('head')[0];
+      head.appendChild(meta);
+      window.nick = $('[name="nick"]').attr('content');
+      statusMsg.text(' Joining as '+nick+'...' )
+      sock = io.connect('http://'+window.location.host);
+      sock.on('message', handleMessage);
+      sock.send(JSON.stringify({ nickname: nick }));
+      $('#chat_wrapper').removeClass('off');
+    } else {
+      $('#wrong').removeClass('off');
+    }
   });
   window.onfocus =function(){
     Tinycon.setBubble(0);
@@ -91,8 +93,8 @@ $(document).ready(function(){
       } else {
         row_class='default'
       }
-      message = giveMeColors(message);
     }
+    message = giveMeColors(message);
     row.innerHTML = ''
         + '<th class="author">' + from + '</th>'
         + '<td class="msg '+row_class+'">' + message.replace(/\[[0-9][0-9]m/g,'') +'<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>';
@@ -183,8 +185,11 @@ $(document).ready(function(){
     textInput.val('');
   };
   sendMsg.on('click',function(e){
+    console.log(textInput.val())
     if (textInput.val() !== '') {
       sendMessage();
+    } else {
+      alert('<p> You need to input a name</p>')
     }
   });
   window.scrollBody = function() {
