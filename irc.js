@@ -1,36 +1,49 @@
-var http = require('http');
-var fs = require('fs');
-var io = require('socket.io');
-var express = require('express');
-var ircjs = require('irc-js');
- var cfg = {
-   channel:'#nodester'
- }
-var app = express.createServer(); 
-var io = require('socket.io').listen(app)
+/***************************************\
+          IRC#nodester client
+\***************************************/
+
+/*
+ * @name       : irc.js
+ * @mainteiner : Alejandro Morales <vamg008@gmail.com>
+ * @licence    : GNU Affero
+ * @updated    : 17-03-2012
+ * @repo       : http://github.com/nodester/irc
+ * @version    : 2.0.0
+*/
+
+var http    = require('http')
+  , fs      = require('fs')
+  , io      = require('socket.io')
+  , express = require('express')
+  , ircjs   = require('irc-js')
+  , cfg     = { channel:'#nodester' }
+  , app     = express.createServer()
+  , io      = require('socket.io').listen(app);
 
 process.on('uncaughtException', function (err) {
-	console.log('Uncaught error: ' + err.stack);
+  console.log('Uncaught error: ' + err.stack);
 });
 
 app.configure(function(){
-//  app.use(express.compiler({ src: __dirname + '/public', enable: ['stylus'] }));
   app.use(express.static(__dirname + '/public'));
 });
 
 app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
-// app.listen(process.env['app_port'], process.env['app_host']);
+
 app.listen(process.env['app_port'] ||80);
 
+console.log('IRC#nodester is running on %d',process.env['app_port']||80)
 
+/*
+ * Sockets stuff
+*/
 io.sockets.on('connection', function (client) {
   var socket = client;
   var irc = null;
   var nickname = null;
   client.on('message', function(data) {
-    console.log(data)
     var obj = JSON.parse(data);
     if (obj.hasOwnProperty('nickname')) {
       if (irc === null) {
