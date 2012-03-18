@@ -36,7 +36,7 @@ body {
 }
 .time {
   text-align: right;
-  color: #CCC;
+  color: #222;
   margin-right: 0;
   float: right;
 }
@@ -219,5 +219,6 @@ a {
   clear: both;
   height: 2em;
 }
-
+.gold {background-color:#FFD700 !important;}
+.me .time {color:#222 !important;}
 .off {display: none;}
