@@ -57,8 +57,8 @@ $(document).ready(function(){
     Tinycon.setBubble(0);
     counter = 0;
   };
-  window.getNickname = function (name) {
-    var name = name || nick || 'Guest' + parseInt(Math.random(0,10)*15);
+  var getNickname = function (name) {
+    var name = name || nick || 'Guest' + parseInt(Math.random(0,10)*25);
     switch (name) {
       case "":
         alert("You did not input a nickname, please reload if you wish to connect.");
@@ -75,7 +75,7 @@ $(document).ready(function(){
         break;
     }
   };
-  window.appendMessage = function (from, message, s) {
+  var appendMessage = function (from, message, s) {
     var row = document.createElement('tr');
     if (typeof s != 'undefined' && s == true) {
       row.className = 'me btn btn-info';
@@ -101,7 +101,7 @@ $(document).ready(function(){
     chatBody.append(row);
     scrollBody();
   };
-  window.appendEvent = function (from, event, s) {
+  var appendEvent = function (from, event, s) {
     var row = document.createElement('tr');
     if (typeof s != 'undefined' && s == true) {
       row.className = 'me btn btn-info';
@@ -125,7 +125,7 @@ $(document).ready(function(){
     chatBody.append(row);
     scrollBody();
   };
-  window.addNickToList = function (nick) {
+  var addNickToList = function (nick) {
     if (!nick_lis.hasOwnProperty(nick)) {
       var li = document.createElement('li');
       li.value = nick;
@@ -135,14 +135,14 @@ $(document).ready(function(){
       sortList(nick_ul);
     }
   };
-  window.delNickFromList = function (nick) {
+  var delNickFromList = function (nick) {
     if (nick_lis.hasOwnProperty(nick)) {
       nick_ul.removeChild(nick_lis[nick]);
       delete nick_lis[nick];
       sortList(nick_ul);
     }
   };
-  window.handleMessage = function (data) {
+  var handleMessage = function (data) {
     var obj = JSON.parse(data);
     window.spinner.stop();
     statusBar.addClass('off');
@@ -176,7 +176,7 @@ $(document).ready(function(){
       }
     }
   };
-  window.sendMessage = function () {
+  var sendMessage = function () {
     appendMessage(nickname, textInput.val(), true);
     sock.send(JSON.stringify({
       messagetype: "message",
@@ -185,7 +185,6 @@ $(document).ready(function(){
     textInput.val('');
   };
   sendMsg.on('click',function(e){
-    console.log(textInput.val())
     if (textInput.val() !== '') {
       sendMessage();
     } else {

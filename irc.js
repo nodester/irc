@@ -23,9 +23,16 @@ var http    = require('http')
 process.on('uncaughtException', function (err) {
   console.log('Uncaught error: ' + err.stack);
 });
-
+var allowCORS = function(req,res,next){
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Strict-Transport-Security", "max-age=31556926; includeSubDomains");
+  res.header("X-Powered-By","nodeJS");
+  next();
+}
 app.configure(function(){
   app.use(express.static(__dirname + '/public'));
+  app.use(allowCORS);
 });
 
 app.get('/', function(req, res, next){
