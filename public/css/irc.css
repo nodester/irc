@@ -6,6 +6,14 @@ html {
   font-family:"Open Sans";
 }
 body {
+
+/*  background: #d0d0d0;
+  color: #222;
+  font: 12px Helvetica, Arial, sans-serif;
+  padding: 0 0 30px;
+  opacity:0.7;
+*/
+
   margin:0;
 }
 #rocket { margin-left: auto;   margin-right: auto;   width: 8em;top:30px;}
