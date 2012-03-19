@@ -1,0 +1,11 @@
+{
+    "name":"ircnodester"
+  , "version":"1.0.2"
+  , "node":"0.6.12"
+  , "author":"Alejandro Morales"
+  , "dependencies":{
+      "socket.io":"0.9.x"
+    , "irc-js":"*"
+    , "express":"2.5.x"
+  }
+}

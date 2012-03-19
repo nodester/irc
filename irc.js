@@ -1,35 +1,55 @@
-var http = require('http');
-var fs = require('fs');
-var io = require('socket.io');
-var express = require('express');
-var ircjs = require('irc-js');
- 
-var app = express.createServer(); 
+/***************************************\
+          IRC#nodester client
+\***************************************/
+
+/*
+ * @name       : irc.js
+ * @mainteiner : Alejandro Morales <vamg008@gmail.com>
+ * @licence    : GNU Affero
+ * @updated    : 17-03-2012
+ * @repo       : http://github.com/nodester/irc
+ * @version    : 2.0.0
+*/
+
+var http    = require('http')
+  , fs      = require('fs')
+  , io      = require('socket.io')
+  , express = require('express')
+  , ircjs   = require('irc-js')
+  , cfg     = { channel:'#nodester' }
+  , app     = express.createServer()
+  , io      = require('socket.io').listen(app);
 
 process.on('uncaughtException', function (err) {
-	console.log('Uncaught error: ' + err.stack);
+  console.log('Uncaught error: ' + err.stack);
 });
-
+var allowCORS = function(req,res,next){
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Strict-Transport-Security", "max-age=31556926; includeSubDomains");
+  res.header("X-Powered-By","nodeJS");
+  next();
+}
 app.configure(function(){
-//  app.use(express.compiler({ src: __dirname + '/public', enable: ['stylus'] }));
   app.use(express.static(__dirname + '/public'));
+  app.use(allowCORS);
 });
 
 app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
-// app.listen(process.env['app_port'], process.env['app_host']);
-app.listen(8370, 8370);
 
-var socket = io.listen(app, {
-  flashPolicyServer: false,
-  transports: ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']
-});
+app.listen(process.env['app_port'] ||80);
 
-socket.on('connection', function(client) {
+console.log('IRC#nodester is running on %d',process.env['app_port']||80)
+
+/*
+ * Sockets stuff
+*/
+io.sockets.on('connection', function (client) {
+  var socket = client;
   var irc = null;
   var nickname = null;
-  client.send(JSON.stringify({connected: true}));
   client.on('message', function(data) {
     var obj = JSON.parse(data);
     if (obj.hasOwnProperty('nickname')) {
@@ -46,11 +66,12 @@ socket.on('connection', function(client) {
             realname: nickname + ' via http://irc.nodester.com/'
           }
         });
+        console.log(irc)
         irc.connect(function () {
-          irc.join('#nodester');
+          irc.join(cfg.channel);
         });
         irc.addListener('privmsg', function (message) {
-          if (message.params[0] == '#nodester') {
+          if (message.params[0] == cfg.channel) {
             client.send(JSON.stringify({
               messagetype: "message",
               from: message.person.nick,
@@ -64,7 +85,7 @@ socket.on('connection', function(client) {
         irc.addListener('join', function (message) {
           if (message.person.nick == nickname) {
             setTimeout(function () {
-              irc.names("#nodester", function (chan, names) {
+              irc.names(cfg.channel, function (chan, names) {
                 for(var i in names) {
                   client.send(JSON.stringify({
                     messagetype: "join",
@@ -96,7 +117,7 @@ socket.on('connection', function(client) {
     } else if (obj.hasOwnProperty('messagetype')) {
       switch (obj.messagetype) {
         case "message":
-          irc.privmsg("#nodester", obj.message);
+          irc.privmsg(cfg.channel, obj.message);
           break;
         default:
           console.log(data);
@@ -106,6 +127,8 @@ socket.on('connection', function(client) {
   });
 
   client.on('disconnect', function() {
-    irc.quit();
+    if (irc){
+      irc.quit(); 
+    }
   });
 });
