@@ -12,6 +12,7 @@ $(document).ready(function(){
   var nick_ul   = $('#nick_ul');
   var chatForm  = $('#chat-form');
   window.counter = 0;
+  $('#nick').focus();
   var get = function(el){
     return document.getElementById(el);
   }
@@ -51,6 +52,7 @@ $(document).ready(function(){
       sock.on('message', handleMessage);
       sock.send(JSON.stringify({ nickname: nick }));
       $('#chat_wrapper').removeClass('off');
+	  $('#text_input').focus();
     } else {
       $('#wrong').removeClass('off');
     }
@@ -194,6 +196,7 @@ $(document).ready(function(){
     } else {
       alert('<p> You need to input a name</p>')
     }
+	$('#text_input').focus();
 	return false;
   });
 
