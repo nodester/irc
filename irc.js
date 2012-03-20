@@ -18,7 +18,8 @@ var http    = require('http')
   , ircjs   = require('irc-js')
   , cfg     = { channel:'#nodester' }
   , app     = express.createServer()
-  , io      = require('socket.io').listen(app);
+  , io      = require('socket.io').listen(app)
+  , _       = require('underscore');
 
 process.on('uncaughtException', function (err) {
   console.log('Uncaught error: ' + err.stack);
@@ -39,9 +40,9 @@ app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
 
-app.listen(process.env['app_port'] ||80);
+app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
 
-console.log('IRC#nodester is running on %d',process.env['app_port']||80)
+console.log('IRC#nodester is running on %d',app.address().port)
 
 /*
  * Sockets stuff
@@ -75,8 +76,8 @@ io.sockets.on('connection', function (client) {
             client.send(JSON.stringify({
               messagetype: "message",
               from: message.person.nick,
-              channel: message.params[0],
-              message: message.params[1]
+              channel: _.escape(message.params[0]),
+              message: _.escape(message.params[1])
             }));
           } else {
             irc.privmsg(message.person.nick, "I can only talk in #nodester.");
@@ -98,15 +99,15 @@ io.sockets.on('connection', function (client) {
           };
           client.send(JSON.stringify({
             messagetype: "join",
-            from: message.person.nick,
-            channel: message.params[0]
+            from: _.escape(message.person.nick),
+            channel: _.escape(message.params[0])
           }));
         });
         irc.addListener('quit', function (message) {
           client.send(JSON.stringify({
             messagetype: "quit",
-            from: message.person.nick,
-            channel: message.params[0]
+            from: _.escape(message.person.nick),
+            channel: _.escape(message.params[0])
           }));
         });
 

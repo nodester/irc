@@ -1,94 +1,84 @@
 $(document).ready(function(){
-  var sock      = null;
-  var rv        = null;
-  var nickname  = null;
-  var textInput = $('#text_input');
-  var nick_lis  = {};
-  var logBox    = $('#wrapper');
-  var statusBar = $('#statusBar');
-  var statusMsg = $('#statusmsg')
-  var sendMsg   = $('#sendMessage')
-  var chatBody  = $('#chat_body');
-  var nick_ul   = $('#nick_ul');
-  var chatForm  = $('#chat-form');
-  window.counter = 0;
-  $('#nick').focus();
-  var get = function(el){
-    return document.getElementById(el);
-  }
-  var opts = {
-    lines     : 12,
-    length    : 7,
-    width     : 4,
-    radius    : 10,
-    color     : '#000',
-    speed     : 1,
-    trail     : 60,
-    shadow    : false,
-    hwaccel   : false,
-    className : 'spinner',
-    zIndex    : 2e9,
-    top       : 'auto',
-    left      : 'auto'
-  };
+    var sock      = null;
+    var rv        = null;
+    var nickname  = null;
+    var textInput = $('#text_input');
+    var nick_lis  = {};
+    var logBox    = $('#wrapper');
+    var statusBar = $('#statusBar');
+    var statusMsg = $('#statusmsg');
+    var chatBody  = $('#chat_body');
+    var nick_ul   = $('#nick_ul');
+    var chatForm  = $('#chat-form');
+    window.counter = 0;
+    
+    $('#nick').focus();
+    
+    var opts = {
+        lines     : 12,
+        length    : 7,
+        width     : 4,
+        radius    : 10,
+        color     : '#000',
+        speed     : 1,
+        trail     : 60,
+        shadow    : false,
+        hwaccel   : false,
+        className : 'spinner',
+        zIndex    : 2e9,
+        top       : 'auto',
+        left      : 'auto'
+    };
 
-  $('#join-form').on('submit',function(e){
-	e.preventDefault();
-    if (get('nick').value != ''){
-      window.target = document.getElementById('spiner');
-      window.spinner = new Spinner(opts).spin(target);
-      logBox.slideToggle();
-      statusBar.removeClass('off')
-      statusBar.addClass('loader box')
-      var nick = getNickname(get('nick').value);
-      var meta = document.createElement('meta');
-      meta.content = nick; 
-      meta.name = 'nick';
-      var head = document.getElementsByTagName('head')[0];
-      head.appendChild(meta);
-      window.nick = $('[name="nick"]').attr('content');
-      statusMsg.text(' Joining as '+nick+'...' )
-      sock = io.connect('http://'+window.location.host);
-      sock.on('message', handleMessage);
-      sock.send(JSON.stringify({ nickname: nick }));
-      $('#chat_wrapper').removeClass('off');
-	  $('#text_input').focus();
-    } else {
-      $('#wrong').removeClass('off');
-    }
-    return false;
-  });
-  window.onfocus =function(){
-    Tinycon.setBubble(0);
-    counter = 0;
-  };
-  var getNickname = function (name) {
-    var name = name || nick || 'Guest' + parseInt(Math.random(0,10)*25);
-    switch (name) {
-      case "":
-        alert("You did not input a nickname, please reload if you wish to connect.");
-        sock.disconnect();
-        return null;
-        break;
-      case null:
-        alert("Login cancelled, please reload if you wish to connect.");
-        sock.disconnect();
-        return null;
-        break;
-      default:
-        return name;
-        break;
-    }
-  };
+    $('#join-form').on('submit',function(e){
+        e.preventDefault();
+        if ($('#nick').val() !== ''){
+            window.target = document.getElementById('spiner');
+            window.spinner = new Spinner(opts).spin(target);
+            logBox.slideToggle();
+            statusBar.removeClass('off').addClass('loader box');
+            var nick = window.nick = getNickname($('#nick').val());
+            $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
+            statusMsg.text(' Joining as '+nick+'...' );
+            sock = io.connect('http://'+window.location.host);
+            sock.on('message', handleMessage);
+            sock.send(JSON.stringify({ nickname: nick }));
+            $('#chat_wrapper').removeClass('off');
+            $('#text_input').focus();
+        } else {
+            $('#wrong').removeClass('off');
+        }
+        return false;
+    });
+    
+    window.onfocus = function(){
+        Tinycon.setBubble(0);
+        window.counter = 0;
+    };
+    
+    var getNickname = function (name) {
+        var name = name || nick || 'Guest' + parseInt(Math.random(0,10)*25);
+        switch (name) {
+        case "":
+            alert("You did not input a nickname, please reload if you wish to connect.");
+            sock.disconnect();
+            return null;
+        case null:
+            alert("Login cancelled, please reload if you wish to connect.");
+            sock.disconnect();
+            return null;
+        default:
+            return name;
+        }
+    };
   var appendMessage = function (from, message, s) {
-    var row = document.createElement('tr');
-    if (typeof s != 'undefined' && s == true) {
-      row.className = 'me btn btn-info';
+    var row = $('<tr/>');
+    if (typeof s !== 'undefined' && s === true) {
+      row.addClass('me btn btn-info');
     } else {
-      row.className = 'btn'
+      row.addClass('btn');
     }
-    var style=''
-    var row_class =''
+    var row_class = '';
     if (nick){
       var reg = nick.replace(/\s+/, "|");
       var regexp = new RegExp(reg,'gi');
@@ -100,41 +90,42 @@ $(document).ready(function(){
       }
     }
     message = giveMeColors(message);
-    row.innerHTML = ''
-        + '<th class="author">' + from + '</th>'
-        + '<td class="msg '+row_class+'">' + message.replace(/\[[0-9][0-9]m/g,'') +'<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>';
+    row.html('<th class="author">' + from + '</th>'
+        + '<td class="msg '+row_class+'">' + message.replace(/\[[0-9][0-9]m/g,'')
+        + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
     chatBody.append(row);
     scrollBody();
   };
+
   var appendEvent = function (from, event, s) {
-    var row = document.createElement('tr');
+    var row = $('<tr/>');
     if (typeof s != 'undefined' && s == true) {
-      row.className = 'me btn btn-info';
+      row.addClass('me btn btn-info');
     } else {
-      row.className = 'btn '
+      row.addClass('btn');
     }
+    var message = '';
     switch (event) {
       case "join":
-        var message = "<strong>joined the channel</strong>";
+        message = "<strong>joined the channel</strong>";
         break;
       case "quit":
-        var message = "<strong>left the channel</strong>";
+        message = "<strong>left the channel</strong>";
         break;
       default:
-        var message = "<u>unknown event type oO</u>";
+        message = "<u>unknown event type oO</u>";
         break;
     }
-    row.innerHTML = ''
-        + '<th class="author">' + from + '</th>'
-        + '<td class="msg">' + message + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>';
+    row.html(
+        '<th class="author">' + from + '</th>'
+        + '<td class="msg">' + message + '<span class="time">'
+        + (new Date()).toTimeString().substr(0,9)+'</td>');
     chatBody.append(row);
     scrollBody();
   };
   var addNickToList = function (nick) {
     if (!nick_lis.hasOwnProperty(nick)) {
-      var li = document.createElement('li');
-      li.value = nick;
-      li.textContent = nick;
+      var li = $('<li value="'+nick+'">'+nick+'<li/>');
       nick_lis[nick] = li;
       nick_ul.append(li);
       sortList(nick_ul);
@@ -162,7 +153,7 @@ $(document).ready(function(){
         var s = (obj.from == nickname) ? true : false;
         switch (obj.messagetype) {
           case "message":
-            appendMessage(obj.from, obj.message, false);
+            appendMessage(obj.from, _.escape(obj.message), false);
             break;
           case "join":
             appendEvent(obj.from, obj.messagetype, s);
@@ -194,7 +185,7 @@ $(document).ready(function(){
     if (textInput.val() !== '') {
       sendMessage();
     } else {
-      alert('<p> You need to input a name</p>')
+      alert('<p> You need to input a name</p>');
     }
 	$('#text_input').focus();
 	return false;
@@ -208,14 +199,13 @@ $(document).ready(function(){
       var x = oUl.childNodes[i];
       for(var j in oUl.childNodes) {
         var y = oUl.childNodes[j];
-        if((x.innerText != 'undefined' || y.innerText != 'undefined') 
-          && x.innerText > y.innerText) {
+        if((x.innerText != 'undefined' || y.innerText != 'undefined') && x.innerText > y.innerText) {
           if(oUl.firstChild != x)
             oUl.insertBefore(y, x);
         }
       }
     }
-  }
+  };
   /* Define innerText for Mozilla based browsers */
   if((typeof HTMLElement != 'undefined') && (HTMLElement.prototype.__defineGetter__ != 'undefined')) {
     HTMLElement.prototype.__defineGetter__("innerText", function () {
@@ -238,7 +228,7 @@ $(document).ready(function(){
     'magenta'   : ['\033[35m', '\033[39m'],
     'red'       : ['\033[31m', '\033[39m'],
     'yellow'    : ['\033[33m', '\033[39m']
-  }
+  };
   var colors = {
      'p':['<p>','</p>'],
      '[1m'  :['<strong>','</strong>'],
@@ -258,13 +248,13 @@ $(document).ready(function(){
      '[35m' :['<span style="color:magenta">','</span>'],
      '[31m' :['<span style="color:red">','</span>'],
      '[33m' :['<span style="color:yellow">','</span>']
-  }
+  };
 
-  var giveMeColors = function(str){
-    var old   = str = str ||'[44m'+str+'[43m';
+  var giveMeColors = function(str) {
+    var old   = str = str || '[44m'+str+'[43m';
         str   = str.split(str.search(/\[[0-9][0-9]m/));
     var text  = str.join('').split(/\[[0-9][0-9]m/g);
-    var color = str.join('').match(/\[[0-9][0-9]m|\[[0-9]m/g)||'';  
+    var color = str.join('').match(/\[[0-9][0-9]m|\[[0-9]m/g)||'';
     var loop  = -1;
     var dohs  = 0;
     while (color[loop + 1]){
@@ -283,7 +273,7 @@ $(document).ready(function(){
             old = old.replace(new RegExp('\\'+color[++loop]),colors[color[prev]][1]);
           }
         }
-      } 
+      }
     }
     return old.replace(/\[[0-9]m|\[|[0-9][0-9]m|/g,'');
   }
