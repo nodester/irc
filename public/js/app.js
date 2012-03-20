@@ -10,6 +10,7 @@ $(document).ready(function(){
   var sendMsg   = $('#sendMessage')
   var chatBody  = $('#chat_body');
   var nick_ul   = $('#nick_ul');
+  var chatForm  = $('#chat-form');
   window.counter = 0;
   var get = function(el){
     return document.getElementById(el);
@@ -184,13 +185,16 @@ $(document).ready(function(){
     }));
     textInput.val('');
   };
-  sendMsg.on('click',function(e){
+  chatForm.on('submit',function(e){
+	e.preventDefault();
     if (textInput.val() !== '') {
       sendMessage();
     } else {
       alert('<p> You need to input a name</p>')
     }
+	return false;
   });
+
   window.scrollBody = function() {
     document.body.scrollTop = document.body.clientHeight;
   };
