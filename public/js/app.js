@@ -31,7 +31,8 @@ $(document).ready(function(){
     left      : 'auto'
   };
 
-  get('join').addEventListener('click',function(e){
+  $('#join-form').on('submit',function(e){
+	e.preventDefault();
     if (get('nick').value != ''){
       window.target = document.getElementById('spiner');
       window.spinner = new Spinner(opts).spin(target);
@@ -53,6 +54,7 @@ $(document).ready(function(){
     } else {
       $('#wrong').removeClass('off');
     }
+    return false;
   });
   window.onfocus =function(){
     Tinycon.setBubble(0);
