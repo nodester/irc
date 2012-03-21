@@ -118,7 +118,7 @@ io.sockets.on('connection', function (client) {
     } else if (obj.hasOwnProperty('messagetype')) {
       switch (obj.messagetype) {
         case "message":
-          irc.privmsg(cfg.channel, obj.message);
+          irc.privmsg(cfg.channel, _.escape(obj.message));
           break;
         default:
           console.log(data);
