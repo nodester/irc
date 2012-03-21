@@ -29,20 +29,28 @@ $(document).ready(function(){
         top       : 'auto',
         left      : 'auto'
     };
+    
+    var scrollBody = function() {
+        document.body.scrollTop = document.body.clientHeight;
+    };
 
     $('#join-form').on('submit',function(e){
         e.preventDefault();
         if ($('#nick').val() !== ''){
             window.target = document.getElementById('spiner');
-            window.spinner = new Spinner(opts).spin(target);
+            window.spinner = new Spinner(opts).spin(window.target);
+            
             logBox.slideToggle();
             statusBar.removeClass('off').addClass('loader box');
+            
             var nick = window.nick = getNickname($('#nick').val());
             $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
             statusMsg.text(' Joining as '+nick+'...' );
+            
             sock = io.connect('http://'+window.location.host);
             sock.on('message', handleMessage);
             sock.send(JSON.stringify({ nickname: nick }));
+            
             $('#chat_wrapper').removeClass('off');
             $('#text_input').focus();
         } else {
@@ -57,7 +65,7 @@ $(document).ready(function(){
     };
     
     var getNickname = function (name) {
-        var name = name || nick || 'Guest' + parseInt(Math.random(0,10)*25);
+        var name = name || window.nick || 'Guest' + Math.round(Math.random(0,10)*25);
         switch (name) {
         case "":
             alert("You did not input a nickname, please reload if you wish to connect.");
@@ -71,58 +79,64 @@ $(document).ready(function(){
             return name;
         }
     };
-  var appendMessage = function (from, message, s) {
-    var row = $('<tr/>');
-    if (typeof s !== 'undefined' && s === true) {
-      row.addClass('me btn btn-info');
-    } else {
-      row.addClass('btn');
-    }
-    var row_class = '';
-    if (nick){
-      var reg = nick.replace(/\s+/, "|");
-      var regexp = new RegExp(reg,'gi');
-      if (regexp.test(message)){
-        Tinycon.setBubble(++counter);
-        row_class='gold'
-      } else {
-        row_class='default'
-      }
-    }
-    message = giveMeColors(message);
-    row.html('<th class="author">' + from + '</th>'
-        + '<td class="msg '+row_class+'">' + message.replace(/\[[0-9][0-9]m/g,'')
-        + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
-    chatBody.append(row);
-    scrollBody();
-  };
+    
+    var appendMessage = function (from, message, s) {
+        var row = $('<tr/>');
+        if (typeof s !== 'undefined' && s === true) {
+            row.addClass('me btn btn-info');
+        } else {
+            row.addClass('btn');
+        }
+        
+        var row_class = '';
+        if (window.nick){
+            var reg = window.nick.replace(/\s+/, "|");
+            var regexp = new RegExp(reg,'gi');
+            if (regexp.test(message)){
+                Tinycon.setBubble(++window.counter);
+                row_class='gold';
+            } else {
+                row_class='default';
+            }
+        }
+        message = giveMeColors(message);
+        row.html('<th class="author">' + from + '</th>'
+            + '<td class="msg '+row_class+'">' + _.escape(message.replace(/\[[0-9][0-9]m/g,''))
+            + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
+        chatBody.append(row);
+        scrollBody();
+    };
 
-  var appendEvent = function (from, event, s) {
-    var row = $('<tr/>');
-    if (typeof s != 'undefined' && s == true) {
-      row.addClass('me btn btn-info');
-    } else {
-      row.addClass('btn');
-    }
-    var message = '';
-    switch (event) {
-      case "join":
-        message = "<strong>joined the channel</strong>";
-        break;
-      case "quit":
-        message = "<strong>left the channel</strong>";
-        break;
-      default:
-        message = "<u>unknown event type oO</u>";
-        break;
-    }
-    row.html(
-        '<th class="author">' + from + '</th>'
-        + '<td class="msg">' + message + '<span class="time">'
-        + (new Date()).toTimeString().substr(0,9)+'</td>');
-    chatBody.append(row);
-    scrollBody();
-  };
+    var appendEvent = function (from, event, s) {
+        var row = $('<tr/>');
+        if (typeof s !== 'undefined' && s === true) {
+            row.addClass('me btn btn-info');
+        } else {
+            row.addClass('btn');
+        }
+        
+        var message = '';
+        
+        switch (event) {
+        case "join":
+            message = "<strong>joined the channel</strong>";
+            break;
+        case "quit":
+            message = "<strong>left the channel</strong>";
+            break;
+        default:
+            message = "<u>unknown event type oO</u>";
+            break;
+        }
+        
+        row.html(
+            '<th class="author">' + from + '</th>'
+            + '<td class="msg">' + message + '<span class="time">'
+            + (new Date()).toTimeString().substr(0,9)+'</td>');
+        chatBody.append(row);
+        scrollBody();
+    };
+  
   var addNickToList = function (nick) {
     if (!nick_lis.hasOwnProperty(nick)) {
       var li = $('<li value="'+nick+'">'+nick+'<li/>');
@@ -131,6 +145,7 @@ $(document).ready(function(){
       sortList(nick_ul);
     }
   };
+  
   var delNickFromList = function (nick) {
     if (nick_lis.hasOwnProperty(nick)) {
       nick_ul.removeChild(nick_lis[nick]);
@@ -191,9 +206,6 @@ $(document).ready(function(){
 	return false;
   });
 
-  window.scrollBody = function() {
-    document.body.scrollTop = document.body.clientHeight;
-  };
   var sortList = function (oUl) {
     for(var i in oUl.childNodes) {
       var x = oUl.childNodes[i];
@@ -214,6 +226,8 @@ $(document).ready(function(){
       return r.toString();
     });
   }
+  
+  /*
   var ocolors = {
     'bold'      : ['\033[1m',  '\033[22m'],
     'italic'    : ['\033[3m',  '\033[23m'],
@@ -228,7 +242,7 @@ $(document).ready(function(){
     'magenta'   : ['\033[35m', '\033[39m'],
     'red'       : ['\033[31m', '\033[39m'],
     'yellow'    : ['\033[33m', '\033[39m']
-  };
+  };*/
   var colors = {
      'p':['<p>','</p>'],
      '[1m'  :['<strong>','</strong>'],
