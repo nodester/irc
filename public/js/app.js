@@ -99,10 +99,12 @@ $(document).ready(function(){
                 row_class='default';
             }
         }
+        
+        message = _.escapeHTML(message);
         message = giveMeColors(message);
-        row.html('<th class="author">' + from + '</th>'
-            + '<td class="msg '+row_class+'">' + _.escape(message.replace(/\[[0-9][0-9]m/g,''))
-            + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
+        message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
+        message = message.replace(/\[[0-9][0-9]m/g,'');
+        row.html('<th class="author">' + from + '</th>' + '<td class="msg '+row_class+'">' + message + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
         chatBody.append(row);
         scrollBody();
     };
@@ -168,7 +170,7 @@ $(document).ready(function(){
         var s = (obj.from == nickname) ? true : false;
         switch (obj.messagetype) {
           case "message":
-            appendMessage(obj.from, _.escape(obj.message), false);
+            appendMessage(obj.from, obj.message, false);
             break;
           case "join":
             appendEvent(obj.from, obj.messagetype, s);
