@@ -10,6 +10,7 @@ $(document).ready(function(){
     var chatBody  = $('#chat_body');
     var nick_ul   = $('#nick_ul');
     var chatForm  = $('#chat-form');
+    var joinForm  = $('#join-form');
     window.counter = 0;
     
     $('#nick').focus();
@@ -34,7 +35,7 @@ $(document).ready(function(){
         document.body.scrollTop = document.body.clientHeight;
     };
 
-    $('#join-form').on('submit',function(e){
+    joinForm.on('submit',function(e){
         e.preventDefault();
         if ($('#nick').val() !== ''){
             window.target = document.getElementById('spiner');
