@@ -96,6 +96,9 @@ io.sockets.on('connection', function (client) {
           }));
         });
         
+        //TODO motd 372
+        //TODO end of motd 376
+
         //topic 332
         irc.addListener('332', function (raw) {
           client.send(JSON.stringify({

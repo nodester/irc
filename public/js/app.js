@@ -50,6 +50,8 @@ $(document).ready(function(){
             
             sock = io.connect('http://'+window.location.host);
             sock.on('message', handleMessage);
+            sock.on("disconnect", handleDisconnect);
+            appendEvent("*", "connected", false);
             sock.send(JSON.stringify({ nickname: nick }));
             
             $('#chat_wrapper').removeClass('off');
@@ -127,6 +129,12 @@ $(document).ready(function(){
         case "quit":
         case "part":
             message = "<strong>left the channel</strong>";
+            break;
+        case "connected":
+            message = "<strong>Welcome to http://irc.nodester.com/</strong>";
+            break;
+        case "disconnected":
+            message = "<strong>You've been disconnected from http://irc.nodester.com/<br />Cross your fingers and refresh your browser!</strong>";
             break;
         default:
             message = "<u>unknown event type oO</u>";
@@ -212,6 +220,12 @@ $(document).ready(function(){
         }
     };
     
+    var handleDisconnect = function() {
+        appendEvent("*", "disconnected", false);
+        nicks = [];
+        nicksToList();
+    }
+    
     var sendMessage = function () {
         appendMessage(nickname, textInput.val(), true);
         sock.send(JSON.stringify({
@@ -228,8 +242,8 @@ $(document).ready(function(){
         } else {
             alert('<p> You need to input a name</p>');
         }
-  	$('#text_input').focus();
-  	return false;
+        $('#text_input').focus();
+        return false;
     });
 
 /*  var ocolors = {
