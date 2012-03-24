@@ -96,8 +96,25 @@ io.sockets.on('connection', function (client) {
           }));
         });
         
-        //TODO motd 372
-        //TODO end of motd 376
+        irc.addListener('372', function (raw) {
+            client.send(JSON.stringify({
+              messagetype: "motd",
+              //server
+              from: (raw.server),
+              //channel
+              channel: "",
+              //topic
+              message: (raw.params[1])
+            }));
+          });
+
+        irc.addListener('376', function (raw) {
+            client.send(JSON.stringify({
+              messagetype: "endmotd",
+              //server
+              from: (raw.server)
+            }));
+          });
 
         //topic 332
         irc.addListener('332', function (raw) {

@@ -4,6 +4,7 @@ $(document).ready(function(){
     var nickname   = null;
     var textInput  = $('#text_input');
     var nicks      = []; //could be an object if later we decide to add the nick attributes (+,... @)
+    var motd       = "";
     var logBox     = $('#wrapper');
     var statusBar  = $('#statusBar');
     var statusMsg  = $('#statusmsg');
@@ -130,6 +131,9 @@ $(document).ready(function(){
         case "part":
             message = "<strong>left the channel</strong>";
             break;
+        case "endmotd":
+            message = motd;
+            break;
         case "connected":
             message = "<strong>Welcome to http://irc.nodester.com/</strong>";
             break;
@@ -191,6 +195,16 @@ $(document).ready(function(){
                 case "endnames":
                     nicks.sort(cisort);
                     nicksToList();
+                    break;
+                case "motd":
+                    motd += obj.message + "<br />";
+                    break;
+                case "endmotd":
+                    /*
+                     * the following line disables motd
+                     * just uncomment if you want it
+                     */
+                    //appendEvent(obj.from, obj.messagetype, false);
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
