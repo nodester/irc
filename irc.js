@@ -91,16 +91,8 @@ io.sockets.on('connection', function (client) {
         irc.addListener('join', function (message) {
           if (message.person.nick == nickname) {
             setTimeout(function () {
-              irc.names(cfg.channel, function (chan, names) {
-                client.send(JSON.stringify({
-                  messagetype: "names",
-                  from: "",
-                  channel: chan,
-                  message: "",
-                  users: names
-                }));
-              })
-            }, 3500);
+              irc.names(cfg.channel);
+            }, 1500);
           };
           client.send(JSON.stringify({
             messagetype: "join",
@@ -109,12 +101,84 @@ io.sockets.on('connection', function (client) {
           }));
         });
         
+        //topic 332
+        irc.addListener('332', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "topic",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[1]),
+            //topic
+            message: (raw.params[2])
+          }));
+        });
+        
+        //names list incoming 353
+        irc.addListener('353', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "names",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[2]),
+            message: "",
+            //users as a space delimited string
+            users: (raw.params[3].split(" "))
+          }));
+        });
+        
+        //end of names list 366
+        irc.addListener('366', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "endnames",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[1]),
+          }));
+        });
+
+        //on disconnect from irc server
         irc.addListener('quit', function (message) {
           client.send(JSON.stringify({
             messagetype: "quit",
             from: (message.person.nick),
             channel: (message.params[0])
           }));
+        });
+
+        //on parting the channel but remaining connected to the irc server
+        irc.addListener('part', function (message) {
+            client.send(JSON.stringify({
+              messagetype: "part",
+              from: (message.person.nick),
+              channel: (message.params[0])
+            }));
+          });
+
+        /*
+         * must handle some quirks of the implementation of irc client protocol by irc-js
+         * will probably switch to raw
+         */
+        irc.addListener('notice', function (message) {
+          if (message.person !== undefined) {
+            //notice for content
+            client.send(JSON.stringify({
+              messagetype: "notice-msg",
+              from: (message.person.nick),
+              channel: "",
+              message: (message.params[1])
+            }));
+          } else {
+            //notice at login
+            client.send(JSON.stringify({
+              messagetype: "notice",
+              from: (message.params[0]),
+              channel: "",
+              message: (message.params[1])
+            }));
+          }
         });
 
         irc.addListener('error', function () {console.log(arguments)});

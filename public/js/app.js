@@ -81,9 +81,9 @@ $(document).ready(function(){
         }
     };
     
-    var appendMessage = function (from, message, s) {
+    var appendMessage = function (from, message, isSelf) {
         var row = $('<tr/>');
-        if (typeof s !== 'undefined' && s === true) {
+        if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
         } else {
             row.addClass('btn');
@@ -110,9 +110,9 @@ $(document).ready(function(){
         scrollBody();
     };
 
-    var appendEvent = function (from, event, s) {
+    var appendEvent = function (from, event, isSelf) {
         var row = $('<tr/>');
-        if (typeof s !== 'undefined' && s === true) {
+        if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
         } else {
             row.addClass('btn');
@@ -161,27 +161,35 @@ $(document).ready(function(){
             }
         };
         if (obj && obj.messagetype) {
-            var s = (obj.from == nickname) ? true : false;
+            var isSelf = (obj.from == nickname) ? true : false;
             switch (obj.messagetype) {
+                //notice at login
+                case "notice":
+                //notice for content    
+                case "notice-msg":
+                case "topic":
                 case "message":
                     appendMessage(obj.from, obj.message, false);
                     break;
                 case "names":
-                    nicks = [];
+                    //nicks.concat(obj.users); why is this not working?
                     for (var i = 0; i < obj.users.length; i++) {
                         nicks.push(obj.users[i]);
                     }
+                    break;
+                case "endnames":
                     nicks.sort(cisort);
                     nicksToList();
                     break;
                 case "join":
-                    appendEvent(obj.from, obj.messagetype, s);
+                    appendEvent(obj.from, obj.messagetype, isSelf);
                     nicks.push(obj.from);
                     nicks.sort(cisort);
                     nicksToList();
                     break;
                 case "quit":
-                    appendEvent(obj.from, obj.messagetype, s);
+                case "part":
+                    appendEvent(obj.from, obj.messagetype, isSelf);
                     for (var i in nicks) {
                         if (nicks[i] == obj.from) {
                             nicks.splice(i,1);
