@@ -325,7 +325,10 @@ $(document).ready(function(){
         return old.replace(/\[[0-9]m|\[|[0-9][0-9]m|/g,'');
     };
     
-    //case insensitive compare
+    /*
+     * case insensitive compare
+     * will not remove attributes like +, @ before comparison, they will always be kept together
+     */
     var cisort = function(x, y){ 
         var a = x.toUpperCase(); 
         var b = y.toUpperCase(); 
