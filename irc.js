@@ -23,13 +23,15 @@ var http    = require('http')
 process.on('uncaughtException', function (err) {
   console.log('Uncaught error: ' + err.stack);
 });
+
 var allowCORS = function(req,res,next){
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   res.header("Strict-Transport-Security", "max-age=31556926; includeSubDomains");
   res.header("X-Powered-By","nodeJS");
   next();
-}
+};
+
 app.configure(function(){
   app.use(express.static(__dirname + '/public'));
   app.use(allowCORS);
@@ -46,6 +48,7 @@ console.log('IRC#nodester is running on %d',app.address().port)
 /*
  * Sockets stuff
 */
+io.set('log level', 1); //reduce debug messages
 io.sockets.on('connection', function (client) {
   var socket = client;
   var irc = null;
@@ -66,10 +69,12 @@ io.sockets.on('connection', function (client) {
             realname: nickname + ' via http://irc.nodester.com/'
           }
         });
+        
         console.log(irc)
         irc.connect(function () {
           irc.join(cfg.channel);
         });
+        
         irc.addListener('privmsg', function (message) {
           if (message.params[0] == cfg.channel) {
             client.send(JSON.stringify({
@@ -82,26 +87,57 @@ io.sockets.on('connection', function (client) {
             irc.privmsg(message.person.nick, "I can only talk in #nodester.");
           }
         });
+        
         irc.addListener('join', function (message) {
-          if (message.person.nick == nickname) {
-            setTimeout(function () {
-              irc.names(cfg.channel, function (chan, names) {
-                for(var i in names) {
-                  client.send(JSON.stringify({
-                    messagetype: "join",
-                    from: names[i],
-                    channel: chan
-                  }));
-                }
-              })
-            }, 1500);
-          };
           client.send(JSON.stringify({
             messagetype: "join",
             from: (message.person.nick),
             channel: (message.params[0])
           }));
         });
+        
+        //TODO motd 372
+        //TODO end of motd 376
+
+        //topic 332
+        irc.addListener('332', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "topic",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[1]),
+            //topic
+            message: (raw.params[2])
+          }));
+        });
+        
+        //names list incoming 353
+        irc.addListener('353', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "names",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[2]),
+            message: "",
+            //users as a space delimited string
+            users: (raw.params[3].split(" "))
+          }));
+        });
+        
+        //end of names list 366
+        irc.addListener('366', function (raw) {
+          client.send(JSON.stringify({
+            messagetype: "endnames",
+            //nick
+            from: (raw.params[0]),
+            //channel
+            channel: (raw.params[1]),
+          }));
+        });
+
+        //on disconnect from irc server
         irc.addListener('quit', function (message) {
           client.send(JSON.stringify({
             messagetype: "quit",
@@ -110,9 +146,42 @@ io.sockets.on('connection', function (client) {
           }));
         });
 
+        //on parting the channel but remaining connected to the irc server
+        irc.addListener('part', function (message) {
+            client.send(JSON.stringify({
+              messagetype: "part",
+              from: (message.person.nick),
+              channel: (message.params[0])
+            }));
+          });
+
+        /*
+         * must handle some quirks of the implementation of irc client protocol by irc-js
+         * will probably switch to raw
+         */
+        irc.addListener('notice', function (message) {
+          if (message.person !== undefined) {
+            //notice for content
+            client.send(JSON.stringify({
+              messagetype: "notice-msg",
+              from: (message.person.nick),
+              channel: "",
+              message: (message.params[1])
+            }));
+          } else {
+            //notice at login
+            client.send(JSON.stringify({
+              messagetype: "notice",
+              from: (message.params[0]),
+              channel: "",
+              message: (message.params[1])
+            }));
+          }
+        });
+
         irc.addListener('error', function () {console.log(arguments)});
       } else {
-        // Maybe handle updaing of nicks one day :)
+        // Maybe handle updating of nicks one day :)
       }
     } else if (obj.hasOwnProperty('messagetype')) {
       switch (obj.messagetype) {
