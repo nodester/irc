@@ -176,6 +176,7 @@ $(document).ready(function(){
                 case "names":
                     // I tried concat(), it did not work, do not know why, maybe anyone can help?!!!
                     for (var i = 0; i < obj.users.length; i++) {
+                        //
                         nicks.push(obj.users[i]);
                     }
                     break;
@@ -185,19 +186,21 @@ $(document).ready(function(){
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
-                    nicks.push(obj.from);
-                    nicks.sort(cisort);
-                    nicksToList();
+                    if (isSelf == false) {
+                        nicks.push(obj.from);
+                        nicks.sort(cisort);
+                        nicksToList();
+                    }
                     break;
                 case "quit":
                 case "part":
                     appendEvent(obj.from, obj.messagetype, isSelf);
-                    for (var i in nicks) {
+                    for (var i = 0; i < nicks.length; i++) {
                         if (nicks[i] == obj.from) {
                             nicks.splice(i,1);
-                          break;
+                            break;
                         }
-                      }
+                    }
                     nicksToList();
                     break;
                 default:
