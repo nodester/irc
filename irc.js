@@ -89,11 +89,6 @@ io.sockets.on('connection', function (client) {
         });
         
         irc.addListener('join', function (message) {
-          if (message.person.nick == nickname) {
-            setTimeout(function () {
-              irc.names(cfg.channel);
-            }, 1500);
-          };
           client.send(JSON.stringify({
             messagetype: "join",
             from: (message.person.nick),

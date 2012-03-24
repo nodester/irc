@@ -167,12 +167,14 @@ $(document).ready(function(){
                 case "notice":
                 //notice for content    
                 case "notice-msg":
-                case "topic":
                 case "message":
                     appendMessage(obj.from, obj.message, false);
                     break;
+                case "topic":
+                    appendMessage("Topic", obj.message, false);
+                    break;
                 case "names":
-                    //nicks.concat(obj.users); why is this not working?
+                    // I tried concat(), it did not work, do not know why, maybe anyone can help?!!!
                     for (var i = 0; i < obj.users.length; i++) {
                         nicks.push(obj.users[i]);
                     }
