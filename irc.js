@@ -48,7 +48,7 @@ console.log('IRC#nodester is running on %d',app.address().port)
 /*
  * Sockets stuff
 */
-io.set('log level', 1); //reduce debug messages
+//io.set('log level', 1); //reduce debug messages
 io.sockets.on('connection', function (client) {
   var socket = client;
   var irc = null;
@@ -143,6 +143,19 @@ io.sockets.on('connection', function (client) {
           }));
         });
 
+        //on nickname already in use, 433
+        irc.addListener('433', function (message) {
+          client.send(JSON.stringify({
+            messagetype: "433",
+            //rejected nick
+            from: (message.params[1]),
+            //the irc server as channel
+            channel: message.server,
+            //the rejection message, usually "Nickname is already in use."
+            message: (message.params[2])
+          }));
+        });
+
         //on parting the channel but remaining connected to the irc server
         irc.addListener('part', function (message) {
             client.send(JSON.stringify({
@@ -184,10 +197,7 @@ io.sockets.on('connection', function (client) {
  * Must handle some quirks of the implementation of irc client protocol by irc-js
  * Will probably switch to raw.
  * 
- * As it serves no practical purpose, it is commented out.
- * uncomment to use. Do not forget to uncomment the 
- * corresponding code on the UA side
- * 
+*/
         irc.addListener('notice', function (message) {
           if (message.person !== undefined) {
             //notice for content
@@ -207,7 +217,6 @@ io.sockets.on('connection', function (client) {
             }));
           }
         });
-*/
         
         irc.addListener('error', function () {console.log(arguments)});
       } else {
@@ -227,7 +236,9 @@ io.sockets.on('connection', function (client) {
 
   client.on('disconnect', function() {
     if (irc){
-      irc.quit(); 
+      irc.quit();
+      irc = null;
     }
   });
+  
 });
