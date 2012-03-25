@@ -52,7 +52,7 @@ $(document).ready(function(){
             sock = io.connect('http://'+window.location.host);
             sock.on('message', handleMessage);
             sock.on("disconnect", handleDisconnect);
-            appendEvent("*", "connected", false);
+            appendEvent("IRC #nodester", "connected", false);
             sock.send(JSON.stringify({ nickname: nick }));
             
             $('#chat_wrapper').removeClass('off');

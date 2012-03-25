@@ -18,7 +18,9 @@ body {
 }
 #rocket { margin-left: auto;   margin-right: auto;   width: 8em;top:30px;}
 #rocket img {
-	height:150px
+	height:150px;
+	padding-top: 3px;
+	margin-left: -10px;
 }
 .rocket {
 	margin-left: auto;   margin-right: auto;   width: 100%;top:30px;
@@ -27,7 +29,7 @@ body {
 .loader { 
 	margin-left: auto;   margin-right: auto;   width: 8em;top:30px;
 	text-align:center;
-	margin-top:30px
+	margin-top:30px;
 }
 .btn.real {
 	background-image: -moz-linear-gradient(top, white, #E6E6E6);
@@ -100,6 +102,7 @@ a {
 	-webkit-box-shadow: #AAA 0px 1px 5px;
 	box-shadow: 0px 1px 5px #AAA;
 	-moz-box-shadow: 0px 1px 5px #AAA;
+	margin-top: 30px;
 }
 #wrapper form {
 	padding-top:2em;
@@ -120,7 +123,7 @@ a {
 	margin-top:-30px;
 }
 .header img {
-	height:30px !important;
+	height:27px !important;
 }
 .spinner {
 	margin-left:135px;
@@ -216,6 +219,7 @@ a {
 	padding: 0 5px;
 	position: absolute;
 	right: 85px;
+	line-height: 30px;
 }
 #chat_bar button {
 	padding: 0;
