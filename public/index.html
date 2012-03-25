@@ -10,23 +10,24 @@
 
 <div id="main-wrapper">
   <div id="wrapper" class="rocket box">
-    <section id="rocket">
+    <div id="rocket">
       <img src="/rocket-md-right.png">
-    </section>
-    <section class="rocket">
-    <h2>IRC #nodester channel</h2>
-    <p class="off" style="color:red;" id="wrong"> You need to specify a valid nickname</p>
-    <form id="join-form">
-      <input type="text" id="nick" class="btn" placeholder="username">
-      <button href="#" class="btn btn-info" id="join"> Join</button>
-    </form>
-    </section>
+    </div>
+    <div class="rocket">
+      <h2>IRC #nodester channel</h2>
+	  <p class="off" style="color:red;" id="wrong"> You need to specify a valid nickname</p>
+	  <form id="join-form">
+	    <input type="text" id="nick" class="btn" placeholder="username">
+	    <button href="#" class="btn btn-info" id="join"> Join</button>
+	  </form>
+    </div>
   </div>
-  <section id="chat_wrapper" class="off">
-    <section id="rocket"  class="header" style="background: #FFD720;">
+  
+  <div id="chat_wrapper" class="off">
+    <div id="rocket"  class="header" style="background: #FFD720;">
       <img src="/rocket-md-right.png">
       <span> IRC #nodester </span>
-    </section>
+    </div>
     <div id="top_section">
       <div id="nick_list">
         <ul id="nick_ul">
@@ -35,13 +36,13 @@
       <table id="chat_body">
       </table>
     </div>
-    <section id="chat_bar"> 
+    <div id="chat_bar"> 
 	   <form id="chat-form">
 	       <input type="text" id="text_input" class="btn" placeholder="send a message" size="80">
 		   <button type="submit" class="btn btn-info clic" id="sendMessage">Send</button>
 	   </form>
-     </section>
-  </section>
+     </div>
+  </div>
 </div>
 <div id="statusBar" class="off">
   <div id="spiner"></div>
