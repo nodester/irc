@@ -4,6 +4,7 @@ $(document).ready(function(){
     var nickname   = null;
     var textInput  = $('#text_input');
     var nicks      = []; //could be an object if later we decide to add the nick attributes (+,... @)
+    var motd       = "";
     var logBox     = $('#wrapper');
     var statusBar  = $('#statusBar');
     var statusMsg  = $('#statusmsg');
@@ -130,6 +131,9 @@ $(document).ready(function(){
         case "part":
             message = "<strong>left the channel</strong>";
             break;
+        case "endmotd":
+            message = motd;
+            break;
         case "connected":
             message = "<strong>Welcome to http://irc.nodester.com/</strong>";
             break;
@@ -150,11 +154,11 @@ $(document).ready(function(){
     };
   
     var nicksToList = function () {
-        nick_ul.text("");
+        var content = "";
         for (var i = 0; i < nicks.length; i++) {
-            var li = $('<li value="'+nicks[i]+'">'+nicks[i]+'<li/>');
-            nick_ul.append(li);
+            content += "<li>" + nicks[i] + "</li>";
         }
+        nick_ul.html(content);
     };
 
     var handleMessage = function (data) {
@@ -191,6 +195,16 @@ $(document).ready(function(){
                 case "endnames":
                     nicks.sort(cisort);
                     nicksToList();
+                    break;
+                case "motd":
+                    motd += obj.message + "<br />";
+                    break;
+                case "endmotd":
+                    /*
+                     * the following line disables motd
+                     * just uncomment if you want it
+                     */
+                    //appendEvent(obj.from, obj.messagetype, false);
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
@@ -311,7 +325,10 @@ $(document).ready(function(){
         return old.replace(/\[[0-9]m|\[|[0-9][0-9]m|/g,'');
     };
     
-    //case insensitive compare
+    /*
+     * case insensitive compare
+     * will not remove attributes like +, @ before comparison, they will always be kept together
+     */
     var cisort = function(x, y){ 
         var a = x.toUpperCase(); 
         var b = y.toUpperCase(); 
