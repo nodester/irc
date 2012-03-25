@@ -154,11 +154,11 @@ $(document).ready(function(){
     };
   
     var nicksToList = function () {
-        nick_ul.text("");
+        var content = "";
         for (var i = 0; i < nicks.length; i++) {
-            var li = $('<li value="'+nicks[i]+'">'+nicks[i]+'<li/>');
-            nick_ul.append(li);
+            content += "<li>" + nicks[i] + "</li>";
         }
+        nick_ul.html(content);
     };
 
     var handleMessage = function (data) {

@@ -176,25 +176,25 @@ io.sockets.on('connection', function (client) {
          * must handle some quirks of the implementation of irc client protocol by irc-js
          * will probably switch to raw
          */
-        irc.addListener('notice', function (message) {
-          if (message.person !== undefined) {
-            //notice for content
-            client.send(JSON.stringify({
-              messagetype: "notice-msg",
-              from: (message.person.nick),
-              channel: "",
-              message: (message.params[1])
-            }));
-          } else {
-            //notice at login
-            client.send(JSON.stringify({
-              messagetype: "notice",
-              from: (message.params[0]),
-              channel: "",
-              message: (message.params[1])
-            }));
-          }
-        });
+//        irc.addListener('notice', function (message) {
+//          if (message.person !== undefined) {
+//            //notice for content
+//            client.send(JSON.stringify({
+//              messagetype: "notice-msg",
+//              from: (message.person.nick),
+//              channel: "",
+//              message: (message.params[1])
+//            }));
+//          } else {
+//            //notice at login
+//            client.send(JSON.stringify({
+//              messagetype: "notice",
+//              from: (message.params[0]),
+//              channel: "",
+//              message: (message.params[1])
+//            }));
+//          }
+//        });
 
         irc.addListener('error', function () {console.log(arguments)});
       } else {
