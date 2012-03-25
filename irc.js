@@ -96,9 +96,6 @@ io.sockets.on('connection', function (client) {
           }));
         });
         
-        //TODO motd 372
-        //TODO end of motd 376
-
         //topic 332
         irc.addListener('332', function (raw) {
           client.send(JSON.stringify({
@@ -155,10 +152,42 @@ io.sockets.on('connection', function (client) {
             }));
           });
 
-        /*
-         * must handle some quirks of the implementation of irc client protocol by irc-js
-         * will probably switch to raw
-         */
+/*      
+ * MOTD
+ * As it serves no practical purpose, it is commented out.
+ * uncomment to use. Do not forget to uncomment the 
+ * corresponding code on the UA side
+ *   
+        irc.addListener('372', function (raw) {
+            client.send(JSON.stringify({
+              messagetype: "motd",
+              //server
+              from: (raw.server),
+              //channel
+              channel: "",
+              //topic
+              message: (raw.params[1])
+            }));
+        });
+
+        irc.addListener('376', function (raw) {
+            client.send(JSON.stringify({
+              messagetype: "endmotd",
+              //server
+              from: (raw.server)
+            }));
+        });
+ */
+
+/*
+ * NOTICE
+ * Must handle some quirks of the implementation of irc client protocol by irc-js
+ * Will probably switch to raw.
+ * 
+ * As it serves no practical purpose, it is commented out.
+ * uncomment to use. Do not forget to uncomment the 
+ * corresponding code on the UA side
+ * 
         irc.addListener('notice', function (message) {
           if (message.person !== undefined) {
             //notice for content
@@ -178,7 +207,8 @@ io.sockets.on('connection', function (client) {
             }));
           }
         });
-
+*/
+        
         irc.addListener('error', function () {console.log(arguments)});
       } else {
         // Maybe handle updating of nicks one day :)
