@@ -101,6 +101,8 @@ $(document).ready(function(){
             }
         }
         
+        document.getElementById('notification').play();
+        
         message = _.escapeHTML(message);
         message = giveMeColors(message);
         message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
