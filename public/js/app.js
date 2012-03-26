@@ -12,18 +12,19 @@ $(document).ready(function(){
     var nick_ul    = $('#nick_ul');
     var chatForm   = $('#chat-form');
     var joinForm   = $('#join-form');
+    var isIrcNoticesEnabled = false; //would prohibit the displaying of "notice" during the login screen
+    var doNotReconnect = false; //would prohibit the reconnect to nodester server after a disconnect
     window.counter = 0;
-    
     $('#nick').focus();
     
     var opts = {
         lines     : 12,
         length    : 7,
         width     : 4,
-        radius    : 10,
+        radius    : 2.8,
         color     : '#000',
         speed     : 1,
-        trail     : 60,
+        trail     : 40,
         shadow    : false,
         hwaccel   : false,
         className : 'spinner',
@@ -32,35 +33,32 @@ $(document).ready(function(){
         left      : 'auto'
     };
     
+    var enableIrcNotices = function(enabled) {
+        isIrcNoticesEnabled = enabled;
+    };
+    
     var scrollBody = function() {
-        document.body.scrollTop = document.body.clientHeight;
+        $("#chat_scroller").animate({ scrollTop: $("#chat_scroller").prop("scrollHeight") }, 100);
     };
 
-    joinForm.on('submit',function(e){
+    joinForm.on('submit',function(e) {
         e.preventDefault();
-        if ($('#nick').val() !== ''){
-            window.target = document.getElementById('spiner');
-            window.spinner = new Spinner(opts).spin(window.target);
-            
-            logBox.slideToggle();
-            statusBar.removeClass('off').addClass('loader box');
-            
-            var nick = window.nick = getNickname($('#nick').val());
-            $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
-            statusMsg.text(' Joining as '+nick+'...' );
-            
-            sock = io.connect('http://'+window.location.host);
-            sock.on('message', handleMessage);
-            sock.on("disconnect", handleDisconnect);
-            appendEvent("IRC #nodester", "connected", false);
-            sock.send(JSON.stringify({ nickname: nick }));
-            
-            $('#chat_wrapper').removeClass('off');
-            $('#text_input').focus();
+        doNotReconnect = false;
+        if ($('#nick').val() !== '') {
+            $('#wrong').addClass('off');
+            $('#login-msg').removeClass('off');
+            chatBody.text("");
+            if (sock !== null && sock.socket.connected === false) {
+                sock.socket.reconnect();
+            } else {
+                sock = io.connect('http://'+window.location.host);
+                sock.on('message', handleMessage);
+                sock.on('disconnect', handleDisconnect);
+                sock.on('connect', handleConnect);
+            };
         } else {
             $('#wrong').removeClass('off');
         }
-        return false;
     });
     
     window.onfocus = function(){
@@ -70,18 +68,8 @@ $(document).ready(function(){
     
     var getNickname = function (name) {
         var name = name || window.nick || 'Guest' + Math.round(Math.random(0,10)*25);
-        switch (name) {
-        case "":
-            alert("You did not input a nickname, please reload if you wish to connect.");
-            sock.disconnect();
-            return null;
-        case null:
-            alert("Login cancelled, please reload if you wish to connect.");
-            sock.disconnect();
-            return null;
-        default:
-            return name;
-        }
+        nickname = name;
+        return name;
     };
     
     var appendMessage = function (from, message, isSelf) {
@@ -163,22 +151,27 @@ $(document).ready(function(){
 
     var handleMessage = function (data) {
         var obj = JSON.parse(data);
-        window.spinner.stop();
-        statusBar.addClass('off');
-        if (nickname === null) {
-            var tmp = getNickname();
-            if (tmp !== null) {
-                nickname = tmp;
-                rv = sock.send(JSON.stringify({ nickname: nickname }));
-            }
-        };
+        //window.spinner.stop();
+        //statusBar.addClass('off');
         if (obj && obj.messagetype) {
             var isSelf = (obj.from == nickname) ? true : false;
             switch (obj.messagetype) {
+                case "433":  //nick already in use
+                    window.spinner.stop();
+                    sock.disconnect();
+                    $('#login-msg').addClass('off');
+                    $('#wrong').text("");
+                    $('#wrong').removeClass('off');
+                    $('#wrong').text(obj.message);   
+                    return;
                 //notice at login
                 case "notice":
                 //notice for content    
                 case "notice-msg":
+                    if (isIrcNoticesEnabled == true) {
+                        appendMessage(obj.from, obj.message, false);
+                    }
+                    break;
                 case "message":
                     appendMessage(obj.from, obj.message, false);
                     break;
@@ -196,15 +189,26 @@ $(document).ready(function(){
                     nicks.sort(cisort);
                     nicksToList();
                     break;
+                    /*
+                     * motd is currently disabled
+                     * just uncomment if you want it
+                     * you must enable the server corresponding part as well in irc.js
+                     */
                 case "motd":
-                    motd += obj.message + "<br />";
+                    //motd += obj.message + "<br />";
                     break;
                 case "endmotd":
-                    /*
-                     * the following line disables motd
-                     * just uncomment if you want it
-                     */
                     //appendEvent(obj.from, obj.messagetype, false);
+
+                    //here we use end of motd to signal web irc login completed
+                    enableIrcNotices(true);
+                    window.spinner.stop();
+                    $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
+                    $('#chat_wrapper').removeClass('off');
+                    $('#text_input').focus();
+                    appendEvent("IRC #nodester", "connected", false);
+                    $("#chat_scroller").height($("#nick_list").height()-1);
+                    logBox.slideToggle();
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
@@ -228,18 +232,38 @@ $(document).ready(function(){
                 default:
                     alert(data);
                     break;
-            }
+            };
         } else {
             console.log(data);
         }
     };
     
-    var handleDisconnect = function() {
-        appendEvent("*", "disconnected", false);
-        nicks = [];
-        nicksToList();
-    }
+    var handleConnect = function() {
+        //cancel reconnect
+        if (doNotReconnect == true) {
+            return;
+        }
+        var nick = window.nick = getNickname($('#nick').val());
+        $('#login-msg').text("Joining as " + nick + "...");
+        enableIrcNotices(false);
+        sock.send(JSON.stringify({ nickname: nick }));
+        //start spinner
+        window.target = document.getElementById('join-form');
+        window.spinner = new Spinner(opts).spin(window.target);
+    };
     
+    var handleDisconnect = function() {
+        //set a time delay for disconnect
+        //in case we exit the form we do not want the user to see it
+        //the socket has a reconnect timeout does not help us with irc here
+        doNotReconnect = true;
+        setTimeout( function () {
+            appendEvent("*", "disconnected", false);
+            nicks = [];
+            nicksToList();
+        }, 1000);
+    };
+
     var sendMessage = function () {
         appendMessage(nickname, textInput.val(), true);
         sock.send(JSON.stringify({
@@ -339,5 +363,11 @@ $(document).ready(function(){
         } else {
             return 0; 
         }
-    }; 
+    };
+    
+    //to resize "chat_scroller" to the size of screen
+    $(window).resize(function() {
+        $("#chat_scroller").height($("#nick_list").height()-1);
+    });
+    
 });

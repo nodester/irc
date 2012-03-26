@@ -26,11 +26,6 @@ body {
 	margin-left: auto;   margin-right: auto;   width: 100%;top:30px;
 	text-align:center;
 }
-.loader { 
-	margin-left: auto;   margin-right: auto;   width: 8em;top:30px;
-	text-align:center;
-	margin-top:30px;
-}
 .btn.real {
 	background-image: -moz-linear-gradient(top, white, #E6E6E6);
 	background-image: -ms-linear-gradient(top, white, #E6E6E6);
@@ -127,21 +122,20 @@ a {
 }
 .spinner {
 	margin-left:135px;
+	top: 17px;
 }
-#statusmsg {
-	position: relative;
-	margin-top: 30px;
+#login-msg {
 	text-align: center;
-	font-weight:bold;
+	color: green;
 }
 #top_section {
 	padding: 0 151px 0 0;
 }
 #nick_list {
 	bottom: 35px;
-	border-left: 1px solid #EEE;
 	line-height: 1.15;
-	overflow: auto;
+    overflow: auto;
+    overflow-x: hidden;
 	position: fixed;
 	right: 0;
 	top: 37px;
@@ -150,6 +144,7 @@ a {
 	border-left: 3px solid #FFD720;
 	box-shadow: -2px 0 #ccc;
 	color: white;
+	margin-bottom: 10px;
 }
 #nick_list ul {
 	list-style-type: none;
@@ -161,12 +156,15 @@ a {
 	padding-top: 5px;
 	font-size: 15px;
 }
+#chat_scroller {
+    margin-top: 38px;
+    overflow: auto;
+    overflow-x: hidden;
+    margin-right: 4px;
+    height: 30px;
+}
 #chat_body {
-	padding: 10px;
-	width: 100%;
-	margin-top:30px;
-	overflow-y: scroll;
-	margin-bottom: 30px;
+    width: 100%;
 }
 #chat_body th,
 #chat_body td {
