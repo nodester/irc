@@ -12,7 +12,8 @@ $(document).ready(function(){
     var nick_ul    = $('#nick_ul');
     var chatForm   = $('#chat-form');
     var joinForm   = $('#join-form');
-    var isIrcNoticesEnabled = false; 
+    var isIrcNoticesEnabled = false;
+    var doNotReconnect = false;
     window.counter = 0;
     
     $('#nick').focus();
@@ -239,6 +240,10 @@ $(document).ready(function(){
     };
     
     var handleConnect = function() {
+        //cancel reconnect
+        if (doNotReconnect == true) {
+            return;
+        }
         var nick = window.nick = getNickname($('#nick').val());
         $('#login-msg').text("Joining as " + nick + "...");
         enableIrcNotices(false);
@@ -252,11 +257,12 @@ $(document).ready(function(){
         //set a time delay for disconnect
         //in case we exit the form we do not want the user to see it
         //the socket has a reconnect timeout does not help us with irc here
+        doNotReconnect = true;
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
             nicks = [];
             nicksToList();
-        }, 5000);
+        }, 1000);
     };
 
     var sendMessage = function () {
