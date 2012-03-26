@@ -11,6 +11,7 @@ $(document).ready(function(){
     var nick_ul   = $('#nick_ul');
     var chatForm  = $('#chat-form');
     var joinForm  = $('#join-form');
+    var audio     = $('.notification audio').get(0);
     window.counter = 0;
     
     $('#nick').focus();
@@ -101,7 +102,8 @@ $(document).ready(function(){
             }
         }
         
-        document.getElementById('notification').play();
+        
+        audio.play();
         
         message = _.escapeHTML(message);
         message = giveMeColors(message);
