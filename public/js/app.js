@@ -21,10 +21,10 @@ $(document).ready(function(){
         lines     : 12,
         length    : 7,
         width     : 4,
-        radius    : 10,
+        radius    : 2.8,
         color     : '#000',
         speed     : 1,
-        trail     : 60,
+        trail     : 40,
         shadow    : false,
         hwaccel   : false,
         className : 'spinner',
@@ -46,6 +46,7 @@ $(document).ready(function(){
         if ($('#nick').val() !== '') {
             $('#wrong').addClass('off');
             $('#login-msg').removeClass('off');
+            chatBody.text("");
             if (sock !== null && sock.socket.connected === false) {
                 sock.socket.reconnect();
             } else {
@@ -53,7 +54,7 @@ $(document).ready(function(){
                 sock.on('message', handleMessage);
                 sock.on('disconnect', handleDisconnect);
                 sock.on('connect', handleConnect);
-            };           
+            };
         } else {
             $('#wrong').removeClass('off');
         }
@@ -155,6 +156,7 @@ $(document).ready(function(){
             var isSelf = (obj.from == nickname) ? true : false;
             switch (obj.messagetype) {
                 case "433":  //nick already in use
+                    window.spinner.stop();
                     sock.disconnect();
                     $('#login-msg').addClass('off');
                     $('#wrong').text("");
@@ -196,6 +198,17 @@ $(document).ready(function(){
                      * you must enable the server corresponding part as well in irc.js
                      */
                     //appendEvent(obj.from, obj.messagetype, false);
+
+                    enableIrcNotices(true);
+                    //we are only joining one channel, and we will only arrive once here
+                    //indicating a successful login
+                    //we display the main form
+                    window.spinner.stop();
+                    $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
+                    $('#chat_wrapper').removeClass('off');
+                    $('#text_input').focus();
+                    appendEvent("IRC #nodester", "connected", false);
+                    logBox.slideToggle();
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
@@ -203,18 +216,6 @@ $(document).ready(function(){
                         nicks.push(obj.from);
                         nicks.sort(cisort);
                         nicksToList();
-                    } else {
-                        //successful login
-                        //clean up the main form
-                        chatBody.text("");
-                        logBox.slideToggle();
-                        statusBar.removeClass('off').addClass('loader box');
-                        $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
-                        appendEvent("IRC #nodester", "connected", false);
-                        $('#chat_wrapper').removeClass('off');
-                        $('#text_input').focus();
-                        statusBar.addClass('off');
-                        enableIrcNotices(true);
                     }
                     break;
                 case "quit":
@@ -239,15 +240,23 @@ $(document).ready(function(){
     
     var handleConnect = function() {
         var nick = window.nick = getNickname($('#nick').val());
-        $('#login-msg').text(' Joining as '+nick+'...' );
+        $('#login-msg').text("Joining as " + nick + "...");
         enableIrcNotices(false);
         sock.send(JSON.stringify({ nickname: nick }));
+        //start spinner
+        window.target = document.getElementById('join-form');
+        window.spinner = new Spinner(opts).spin(window.target);
     };
     
     var handleDisconnect = function() {
-        appendEvent("*", "disconnected", false);
-        nicks = [];
-        nicksToList();
+        //set a time delay for disconnect
+        //in case we exit the form we do not want the user to see it
+        //the socket has a reconnect timeout does not help us with irc here
+        setTimeout( function () {
+            appendEvent("*", "disconnected", false);
+            nicks = [];
+            nicksToList();
+        }, 5000);
     };
 
     var sendMessage = function () {

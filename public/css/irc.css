@@ -26,11 +26,6 @@ body {
 	margin-left: auto;   margin-right: auto;   width: 100%;top:30px;
 	text-align:center;
 }
-.loader { 
-	margin-left: auto;   margin-right: auto;   width: 8em;top:30px;
-	text-align:center;
-	margin-top:30px;
-}
 .btn.real {
 	background-image: -moz-linear-gradient(top, white, #E6E6E6);
 	background-image: -ms-linear-gradient(top, white, #E6E6E6);
@@ -127,13 +122,14 @@ a {
 }
 .spinner {
 	margin-left:135px;
+	top: 17px;
 }
-#statusmsg {
-	position: relative;
-	margin-top: 30px;
+
+#login-msg {
 	text-align: center;
-	font-weight:bold;
+	color: green;
 }
+
 #top_section {
 	padding: 0 151px 0 0;
 }

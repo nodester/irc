@@ -48,7 +48,7 @@ console.log('IRC#nodester is running on %d',app.address().port)
 /*
  * Sockets stuff
 */
-//io.set('log level', 1); //reduce debug messages
+io.set('log level', 1); //reduce debug messages
 io.sockets.on('connection', function (client) {
   var socket = client;
   var irc = null;
@@ -170,7 +170,7 @@ io.sockets.on('connection', function (client) {
  * As it serves no practical purpose, it is commented out.
  * uncomment to use. Do not forget to uncomment the 
  * corresponding code on the UA side
- *   
+ */   
         irc.addListener('372', function (raw) {
             client.send(JSON.stringify({
               messagetype: "motd",
@@ -190,7 +190,7 @@ io.sockets.on('connection', function (client) {
               from: (raw.server)
             }));
         });
- */
+ /**/
 
 /*
  * NOTICE
