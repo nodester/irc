@@ -12,10 +12,9 @@ $(document).ready(function(){
     var nick_ul    = $('#nick_ul');
     var chatForm   = $('#chat-form');
     var joinForm   = $('#join-form');
-    var isIrcNoticesEnabled = false;
-    var doNotReconnect = false;
+    var isIrcNoticesEnabled = false; //would prohibit the displaying of "notice" during the login screen
+    var doNotReconnect = false; //would prohibit the reconnect to nodester server after a disconnect
     window.counter = 0;
-    
     $('#nick').focus();
     
     var opts = {
@@ -39,7 +38,7 @@ $(document).ready(function(){
     };
     
     var scrollBody = function() {
-        document.body.scrollTop = document.body.clientHeight;
+        $("#chat_scroller").animate({ scrollTop: $("#chat_scroller").prop("scrollHeight") }, 1000);
     };
 
     joinForm.on('submit',function(e) {
@@ -190,26 +189,25 @@ $(document).ready(function(){
                     nicks.sort(cisort);
                     nicksToList();
                     break;
-                case "motd":
-                    motd += obj.message + "<br />";
-                    break;
-                case "endmotd":
                     /*
-                     * the following line disables motd
+                     * motd is currently disabled
                      * just uncomment if you want it
                      * you must enable the server corresponding part as well in irc.js
                      */
+                case "motd":
+                    //motd += obj.message + "<br />";
+                    break;
+                case "endmotd":
                     //appendEvent(obj.from, obj.messagetype, false);
 
+                    //here we use end of motd to signal web irc login completed
                     enableIrcNotices(true);
-                    //we are only joining one channel, and we will only arrive once here
-                    //indicating a successful login
-                    //we display the main form
                     window.spinner.stop();
                     $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
                     $('#chat_wrapper').removeClass('off');
                     $('#text_input').focus();
                     appendEvent("IRC #nodester", "connected", false);
+                    $("#chat_scroller").height($("#nick_list").height()-1);
                     logBox.slideToggle();
                     break;
                 case "join":
@@ -365,5 +363,11 @@ $(document).ready(function(){
         } else {
             return 0; 
         }
-    }; 
+    };
+    
+    //to resize "chat_scroller" to the size of screen
+    $(window).resize(function() {
+        $("#chat_scroller").height($("#nick_list").height()-1);
+    });
+    
 });
