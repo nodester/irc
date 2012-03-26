@@ -38,7 +38,7 @@ $(document).ready(function(){
     };
     
     var scrollBody = function() {
-        $("#chat_scroller").animate({ scrollTop: $("#chat_scroller").prop("scrollHeight") }, 1000);
+        $("#chat_scroller").animate({ scrollTop: $("#chat_scroller").prop("scrollHeight") }, 100);
     };
 
     joinForm.on('submit',function(e) {

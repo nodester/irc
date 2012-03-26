@@ -163,6 +163,9 @@ a {
     margin-right: 4px;
     height: 30px;
 }
+#chat_body {
+    width: 100%;
+}
 #chat_body th,
 #chat_body td {
 	vertical-align: top;
