@@ -44,6 +44,7 @@ $(document).ready(function(){
 
     joinForm.on('submit',function(e) {
         e.preventDefault();
+        doNotReconnect = false;
         if ($('#nick').val() !== '') {
             $('#wrong').addClass('off');
             $('#login-msg').removeClass('off');
