@@ -12,13 +12,14 @@ $(document).ready(function(){
     var nick_ul    = $('#nick_ul');
     var chatForm   = $('#chat-form');
     var joinForm   = $('#join-form');
-    var doNotReconnect = false; //would prohibit the reconnect to nodester server after a disconnect
+    var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
     window.counter = 0;
     $('#nick').focus();
     
     var Container = function() {
-        var bIrcNoticesEnabled = false; //would prohibit the displaying of "notice" during the login screen
-        var bAutoScrollEnabled = true; //allow/disallow chat page scroll
+        var bIrcNoticesEnabled = false; //allow display of "notice" messages during login, default false
+        var bAutoScrollEnabled = true; //allow chat page scroll, default true
+        var bTonesEnabled = false; //allow tones on pm (yellow) messages, default false
         var opts = {
             lines     : 12,
             length    : 7,
@@ -52,6 +53,13 @@ $(document).ready(function(){
         this.getAutoScrollEnabled = function() {
             return bAutoScrollEnabled;
         };
+        
+        this.setTonesEnables = function(enabled) {
+            bTonesEnabled = enabled;
+        }
+        this.getTonesEnabled = function() {
+            return bTonesEnabled;
+        }
     };
     var c = new Container();
 
@@ -147,6 +155,7 @@ $(document).ready(function(){
             break;
         case "disconnected":
             message = "<strong>You've been disconnected from http://irc.nodester.com/<br />Cross your fingers and refresh your browser!</strong>";
+            message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         default:
             message = "<u>unknown event type oO</u>";
@@ -231,6 +240,7 @@ $(document).ready(function(){
                     appendEvent("IRC #nodester", "connected", false);
                     $("#chat_scroller").height($("#nick_list").height()-1);
                     logBox.slideToggle();
+                    $("#nickLabel").text(nickname);
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
@@ -274,10 +284,14 @@ $(document).ready(function(){
         window.spinner = new Spinner(c.getOpts()).spin(window.target);
     };
     
+    /*
+     * set a time delay for disconnect
+     * 
+     * in case we exit the form we do not want the user to see it
+     * the socket has a reconnect timeout that does not help us with irc here
+     * so we make sure the socket won't reconnect: doNotReconnect = true
+     */
     var handleDisconnect = function() {
-        //set a time delay for disconnect
-        //in case we exit the form we do not want the user to see it
-        //the socket has a reconnect timeout does not help us with irc here
         doNotReconnect = true;
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
@@ -306,7 +320,7 @@ $(document).ready(function(){
         return false;
     });
 
-/*  var ocolors = {
+/*  var colors = {
       'bold'      : ['\033[1m',  '\033[22m'],
       'italic'    : ['\033[3m',  '\033[23m'],
       'underline' : ['\033[4m',  '\033[24m'],
@@ -373,7 +387,7 @@ $(document).ready(function(){
     
     /*
      * case insensitive compare
-     * will not remove attributes like +, @ before comparison, they will always be kept together
+     * will not remove attributes like +, @ before comparison
      */
     var cisort = function(x, y){ 
         var a = x.toUpperCase(); 
@@ -403,5 +417,29 @@ $(document).ready(function(){
     $("#chat_scroller").on('scroll', function() {
         fn($(this));
     });
+    
+    /*
+     * added prerequisites for tones on pm, yellow messages
+     * 
+     * please add the audio and use (c.getTonesEnabled() == true) as a flag
+     * if a flag is not enough, and code needs be added/removed on btnTones.click(),
+     * use the TODO below
+     * 
+     * the tones button is disable by default, so is a label that displays the nickname,
+     * when tones changes ready, please remove class off from nickLabel and btnTones in index.html
+     * 
+     */
+    $("#btnTones").on('click', function() {
+        //could be made to work faster but how often do we really click on this
+        //will not remember the status yet :), cookies, mmm
+        c.setTonesEnables(!c.getTonesEnabled());
+        if (c.getTonesEnabled() == true) {
+            //TODO code here
+            $("#btnTones").text("Disable tones");
+        } else {
+            //TODO code here
+            $("#btnTones").text("Enable tones");
+        }
+    })
     
 });
