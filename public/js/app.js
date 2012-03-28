@@ -12,31 +12,49 @@ $(document).ready(function(){
     var nick_ul    = $('#nick_ul');
     var chatForm   = $('#chat-form');
     var joinForm   = $('#join-form');
-    var isIrcNoticesEnabled = false; //would prohibit the displaying of "notice" during the login screen
     var doNotReconnect = false; //would prohibit the reconnect to nodester server after a disconnect
     window.counter = 0;
     $('#nick').focus();
     
-    var opts = {
-        lines     : 12,
-        length    : 7,
-        width     : 4,
-        radius    : 2.8,
-        color     : '#000',
-        speed     : 1,
-        trail     : 40,
-        shadow    : false,
-        hwaccel   : false,
-        className : 'spinner',
-        zIndex    : 2e9,
-        top       : 'auto',
-        left      : 'auto'
+    var Container = function() {
+        var bIrcNoticesEnabled = false; //would prohibit the displaying of "notice" during the login screen
+        var bAutoScrollEnabled = true; //allow/disallow chat page scroll
+        var opts = {
+            lines     : 12,
+            length    : 7,
+            width     : 4,
+            radius    : 2.8,
+            color     : '#000',
+            speed     : 1,
+            trail     : 40,
+            shadow    : false,
+            hwaccel   : false,
+            className : 'spinner',
+            zIndex    : 2e9,
+            top       : 'auto',
+            left      : 'auto'
+        };
+
+        this.getOpts = function() {
+            return opts;
+        };
+        
+        this.setIrcNoticesEnabled = function(enabled) {
+            bIrcNoticesEnabled = enabled;
+        };
+        this.getIrcNoticesEnabled = function() {
+            return bIrcNoticesEnabled;
+        };
+        
+        this.setAutoScrollEnabled = function(enabled) {
+            bAutoScrollEnabled = enabled;
+        };
+        this.getAutoScrollEnabled = function() {
+            return bAutoScrollEnabled;
+        };
     };
-    
-    var enableIrcNotices = function(enabled) {
-        isIrcNoticesEnabled = enabled;
-    };
-    
+    var c = new Container();
+
     var scrollBody = function() {
         $("#chat_scroller").animate({ scrollTop: $("#chat_scroller").prop("scrollHeight") }, 100);
     };
@@ -98,7 +116,9 @@ $(document).ready(function(){
         message = message.replace(/\[[0-9][0-9]m/g,'');
         row.html('<th class="author">' + from + '</th>' + '<td class="msg '+row_class+'">' + message + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
         chatBody.append(row);
-        scrollBody();
+        if (c.getAutoScrollEnabled() == true) {
+            scrollBody();
+        }
     };
 
     var appendEvent = function (from, event, isSelf) {
@@ -138,7 +158,9 @@ $(document).ready(function(){
             + '<td class="msg">' + message + '<span class="time">'
             + (new Date()).toTimeString().substr(0,9)+'</td>');
         chatBody.append(row);
-        scrollBody();
+        if (c.getAutoScrollEnabled() == true) {
+            scrollBody();
+        }
     };
   
     var nicksToList = function () {
@@ -168,7 +190,7 @@ $(document).ready(function(){
                 case "notice":
                 //notice for content    
                 case "notice-msg":
-                    if (isIrcNoticesEnabled == true) {
+                    if (c.getIrcNoticesEnabled() == true) {
                         appendMessage(obj.from, obj.message, false);
                     }
                     break;
@@ -201,7 +223,7 @@ $(document).ready(function(){
                     //appendEvent(obj.from, obj.messagetype, false);
 
                     //here we use end of motd to signal web irc login completed
-                    enableIrcNotices(true);
+                    c.setIrcNoticesEnabled(true);
                     window.spinner.stop();
                     $('<meta/>', {content: nick, name: 'nick'}).appendTo($('head'));
                     $('#chat_wrapper').removeClass('off');
@@ -245,11 +267,11 @@ $(document).ready(function(){
         }
         var nick = window.nick = getNickname($('#nick').val());
         $('#login-msg').text("Joining as " + nick + "...");
-        enableIrcNotices(false);
+        c.setIrcNoticesEnabled(false);
         sock.send(JSON.stringify({ nickname: nick }));
         //start spinner
         window.target = document.getElementById('join-form');
-        window.spinner = new Spinner(opts).spin(window.target);
+        window.spinner = new Spinner(c.getOpts()).spin(window.target);
     };
     
     var handleDisconnect = function() {
@@ -368,6 +390,18 @@ $(document).ready(function(){
     //to resize "chat_scroller" to the size of screen
     $(window).resize(function() {
         $("#chat_scroller").height($("#nick_list").height()-1);
+    });
+    
+    var fn = function(obj) {
+        c.setAutoScrollEnabled(false);
+        if(obj.scrollTop() + obj.height() >= obj.prop("scrollHeight"))
+        {
+            c.setAutoScrollEnabled(true);
+        }
+    }
+
+    $("#chat_scroller").on('scroll', function() {
+        fn($(this));
     });
     
 });
