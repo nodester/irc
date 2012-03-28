@@ -1,18 +1,20 @@
 $(document).ready(function(){
-    var sock       = null;
-    var rv         = null;
-    var nickname   = null;
-    var textInput  = $('#text_input');
+    var sock      = null;
+    var rv        = null;
+    var nickname  = null;
+    var textInput = $('#text_input');
     var nicks      = []; //could be an object if later we decide to add the nick attributes (+,... @)
     var motd       = "";
-    var logBox     = $('#wrapper');
-    var statusBar  = $('#statusBar');
-    var statusMsg  = $('#statusmsg');
-    var chatBody   = $('#chat_body');
-    var nick_ul    = $('#nick_ul');
-    var chatForm   = $('#chat-form');
-    var joinForm   = $('#join-form');
+    var nick_lis  = {};
+    var logBox    = $('#wrapper');
+    var statusBar = $('#statusBar');
+    var statusMsg = $('#statusmsg');
+    var chatBody  = $('#chat_body');
+    var nick_ul   = $('#nick_ul');
+    var chatForm  = $('#chat-form');
+    var joinForm  = $('#join-form');
     var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
+    var audio     = $('.notification audio').get(0);
     window.counter = 0;
     $('#nick').focus();
     
@@ -117,6 +119,9 @@ $(document).ready(function(){
                 row_class='default';
             }
         }
+        
+        
+        audio.play();
         
         message = _.escapeHTML(message);
         message = giveMeColors(message);
