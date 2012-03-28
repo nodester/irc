@@ -86,6 +86,17 @@ a {
 	filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 	color: #fff;
 }
+.btn-settings {
+    margin-top: 2px;
+    position: absolute;
+    right: 30px;
+}
+#nickLabel {
+    margin-top: 7px;
+    position: absolute;
+    right: 160px;
+    text-align: right;
+}
 .box {
 	width:17em;
 	padding:50px 10px 30px 10px;
