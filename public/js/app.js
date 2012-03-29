@@ -113,6 +113,9 @@ $(document).ready(function(){
             if (regexp.test(message)){
                 Tinycon.setBubble(++window.counter);
                 row_class='gold';
+                if (c.getTonesEnabled() == true) {
+                    document.getElementById('notification').play();
+                }
             } else {
                 row_class='default';
             }
