@@ -157,6 +157,7 @@ $(document).ready(function(){
             break;
         case "connected":
             message = "<strong>Welcome to http://irc.nodester.com/</strong>";
+            message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         case "disconnected":
             message = "<strong>You've been disconnected from http://irc.nodester.com/<br />Cross your fingers and refresh your browser!</strong>";
