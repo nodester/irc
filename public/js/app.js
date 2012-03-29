@@ -4,7 +4,6 @@ $(document).ready(function(){
     var nickname  = null;
     var textInput = $('#text_input');
     var nicks     = []; //could be an object if later we decide to add the nick attributes (+,... @)
-    var motd      = "";
     var logBox    = $('#wrapper');
     var statusBar = $('#statusBar');
     var statusMsg = $('#statusmsg');
@@ -177,7 +176,27 @@ $(document).ready(function(){
             scrollBody();
         }
     };
-  
+
+    var appendExtras = function (from, message) {
+        if ($('#extra').text() == "") {
+            //we arrived here for the first time
+            var row = $('<tr/>');
+            row.addClass('btn');
+            row.html(
+                '<th class="author">' + from + '</th>'
+                + '<td class="msg" id="extra">' + message +'</td>');
+            chatBody.append(row);
+        } else {
+            var text = $('#extra').html();
+            message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
+            text += "<br />" + message;
+            $('#extra').html(text);
+        };
+        if (c.getAutoScrollEnabled() == true) {
+            scrollBody();
+        }
+    };
+    
     var nicksToList = function () {
         var content = "";
         for (var i = 0; i < nicks.length; i++) {
@@ -235,13 +254,12 @@ $(document).ready(function(){
                      * you must enable the server corresponding part as well in irc.js
                      */
                 case "motd":
-                    //motd += obj.message + "<br />";
-                    //for the time being as it is not used, redirect to login screen
-                    loginStatus.text(obj.message);
+                    appendExtras(obj.from, obj.message);
                     break;
                 case "endmotd":
-                    //appendEvent(obj.from, obj.messagetype, false);
-
+                    //do nothing
+                    break;
+                case "001":
                     //here we use end of motd to signal web irc login completed
                     c.setIrcNoticesEnabled(true);
                     window.spinner.stop();

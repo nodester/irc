@@ -41,7 +41,7 @@ app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
 
-app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
+app.listen(process.env.C9_PORT || process.env['app_port'] || 13001);
 
 console.log('IRC#nodester is running on %d',app.address().port)
 
@@ -165,12 +165,7 @@ io.sockets.on('connection', function (client) {
             }));
           });
 
-/*      
- * MOTD
- * As it serves no practical purpose, it is commented out.
- * uncomment to use. Do not forget to uncomment the 
- * corresponding code on the UA side
- */   
+        //motd
         irc.addListener('372', function (raw) {
             client.send(JSON.stringify({
               messagetype: "motd",
@@ -190,7 +185,19 @@ io.sockets.on('connection', function (client) {
               from: (raw.server)
             }));
         });
- /**/
+        
+        //welcome from ircserver
+        irc.addListener('001', function (raw) {
+            client.send(JSON.stringify({
+              messagetype: "001",
+              //server
+              from: (raw.server),
+              //channel
+              channel: "",
+              //topic
+              message: (raw.params[1])
+            }));
+        });
 
 /*
  * NOTICE
