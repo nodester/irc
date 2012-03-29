@@ -41,7 +41,7 @@ app.get('/', function(req, res, next){
   res.render('./public/index.html');
 });
 
-app.listen(process.env.C9_PORT || process.env['app_port'] || 13001);
+app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
 
 console.log('IRC#nodester is running on %d',app.address().port)
 
