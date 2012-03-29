@@ -1,7 +1,7 @@
 /***************************************\
           IRC#nodester client
 \***************************************/
-
+ 
 /*
  * @name       : irc.js
  * @mainteiner : Alejandro Morales <vamg008@gmail.com>
