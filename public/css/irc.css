@@ -139,6 +139,12 @@ a {
 	text-align: center;
 	color: green;
 }
+#login-status {
+    font-size: 0.7em;
+    margin: 13px -10px -30px -10px;
+    text-align: left;
+    color: #500000;
+}
 #top_section {
 	padding: 0 151px 0 0;
 }

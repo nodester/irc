@@ -13,6 +13,7 @@ $(document).ready(function(){
     var chatForm  = $('#chat-form');
     var joinForm  = $('#join-form');
     var audio     = $('.notification audio').get(0);
+    var loginStatus = $('#login-status-text');
     var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
     window.counter = 0;
     $('#nick').focus();
@@ -156,6 +157,7 @@ $(document).ready(function(){
             break;
         case "connected":
             message = "<strong>Welcome to http://irc.nodester.com/</strong>";
+            message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         case "disconnected":
             message = "<strong>You've been disconnected from http://irc.nodester.com/<br />Cross your fingers and refresh your browser!</strong>";
@@ -205,6 +207,9 @@ $(document).ready(function(){
                 case "notice-msg":
                     if (c.getIrcNoticesEnabled() == true) {
                         appendMessage(obj.from, obj.message, false);
+                    } else {
+                        //redirect to login screen
+                        loginStatus.text(obj.message); 
                     }
                     break;
                 case "message":
@@ -231,6 +236,8 @@ $(document).ready(function(){
                      */
                 case "motd":
                     //motd += obj.message + "<br />";
+                    //for the time being as it is not used, redirect to login screen
+                    loginStatus.text(obj.message);
                     break;
                 case "endmotd":
                     //appendEvent(obj.from, obj.messagetype, false);
@@ -324,7 +331,7 @@ $(document).ready(function(){
         return false;
     });
 
-/*  var colors = {
+/*  var ocolors = {
       'bold'      : ['\033[1m',  '\033[22m'],
       'italic'    : ['\033[3m',  '\033[23m'],
       'underline' : ['\033[4m',  '\033[24m'],
