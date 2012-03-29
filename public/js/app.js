@@ -3,9 +3,8 @@ $(document).ready(function(){
     var rv        = null;
     var nickname  = null;
     var textInput = $('#text_input');
-    var nicks      = []; //could be an object if later we decide to add the nick attributes (+,... @)
-    var motd       = "";
-    var nick_lis  = {};
+    var nicks     = []; //could be an object if later we decide to add the nick attributes (+,... @)
+    var motd      = "";
     var logBox    = $('#wrapper');
     var statusBar = $('#statusBar');
     var statusMsg = $('#statusmsg');
@@ -13,15 +12,15 @@ $(document).ready(function(){
     var nick_ul   = $('#nick_ul');
     var chatForm  = $('#chat-form');
     var joinForm  = $('#join-form');
-    var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
     var audio     = $('.notification audio').get(0);
+    var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
     window.counter = 0;
     $('#nick').focus();
     
     var Container = function() {
         var bIrcNoticesEnabled = false; //allow display of "notice" messages during login, default false
         var bAutoScrollEnabled = true; //allow chat page scroll, default true
-        var bTonesEnabled = false; //allow tones on pm (yellow) messages, default false
+        var bTonesEnabled = true; //allow tones on pm (yellow) messages, default true
         var opts = {
             lines     : 12,
             length    : 7,
@@ -115,13 +114,13 @@ $(document).ready(function(){
             if (regexp.test(message)){
                 Tinycon.setBubble(++window.counter);
                 row_class='gold';
+                if (c.getTonesEnabled() == true) {
+                    audio.play();
+                }
             } else {
                 row_class='default';
             }
         }
-        
-        
-        audio.play();
         
         message = _.escapeHTML(message);
         message = giveMeColors(message);
@@ -423,26 +422,12 @@ $(document).ready(function(){
         fn($(this));
     });
     
-    /*
-     * added prerequisites for tones on pm, yellow messages
-     * 
-     * please add the audio and use (c.getTonesEnabled() == true) as a flag
-     * if a flag is not enough, and code needs be added/removed on btnTones.click(),
-     * use the TODO below
-     * 
-     * the tones button is disable by default, so is a label that displays the nickname,
-     * when tones changes ready, please remove class off from nickLabel and btnTones in index.html
-     * 
-     */
     $("#btnTones").on('click', function() {
-        //could be made to work faster but how often do we really click on this
         //will not remember the status yet :), cookies, mmm
         c.setTonesEnables(!c.getTonesEnabled());
         if (c.getTonesEnabled() == true) {
-            //TODO code here
             $("#btnTones").text("Disable tones");
         } else {
-            //TODO code here
             $("#btnTones").text("Enable tones");
         }
     })
