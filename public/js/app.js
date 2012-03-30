@@ -14,6 +14,7 @@ $(document).ready(function(){
     var audio     = $('.notification audio').get(0);
     var loginStatus = $('#login-status-text');
     var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
+    var motdPrevLineEmpty = false; //flag for determining if the prev motd line was only spaces and asterisks
     window.counter = 0;
     $('#nick').focus();
     
@@ -178,6 +179,7 @@ $(document).ready(function(){
     };
 
     var appendExtras = function (from, message) {
+        message = message.substring(2);
         if ($('#extra').text() == "") {
             //we arrived here for the first time
             var row = $('<tr/>');
@@ -188,8 +190,17 @@ $(document).ready(function(){
             chatBody.append(row);
         } else {
             var text = $('#extra').html();
-            message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
-            text += "<br />" + message;
+            if (message == " ") {
+                text += "<br /><br />";
+            } else {
+                message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
+                if (motdPrevLineEmpty == true) {
+                    text += "<br />" + message;
+                } else {
+                    text += " " + message;
+                }
+                motdPrevLineEmpty = (message.replace(/[* ]+/g, '') == "" ? true : false)
+            }
             $('#extra').html(text);
         };
         if (c.getAutoScrollEnabled() == true) {
