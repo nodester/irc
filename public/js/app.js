@@ -219,18 +219,31 @@ $(document).ready(function(){
                     $('#wrong').text("");
                     $('#wrong').removeClass('off');
                     $('#wrong').text(obj.message);   
+                    $('#join').removeAttr("disabled");
                     return;
                 //notice at login
                 case "notice":
+                case "notice-err":
                 //notice for content    
                 case "notice-msg":
                     if (c.getIrcNoticesEnabled() == true) {
                         appendMessage(obj.from, obj.message, false);
                     } else {
                         //redirect to login screen
-                        loginStatus.text(obj.message); 
+                        var html = loginStatus.html();
+                        html += "<br />" + obj.message; 
+                        loginStatus.html(html); 
                     }
                     break;
+                case "error":  //nick already in use
+                    window.spinner.stop();
+                    sock.disconnect();
+                    $('#login-msg').addClass('off');
+                    $('#wrong').text("");
+                    $('#wrong').removeClass('off');
+                    $('#wrong').text("Oh well, try again!");   
+                    $('#join').removeAttr("disabled");
+                    return;
                 case "message":
                     appendMessage(obj.from, obj.message, false);
                     break;
@@ -238,9 +251,7 @@ $(document).ready(function(){
                     appendMessage("Topic", obj.message, false);
                     break;
                 case "names":
-                    // I tried concat(), it did not work, do not know why, maybe anyone can help?!!!
                     for (var i = 0; i < obj.users.length; i++) {
-                        //
                         nicks.push(obj.users[i]);
                     }
                     break;
@@ -270,6 +281,7 @@ $(document).ready(function(){
                     $("#chat_scroller").height($("#nick_list").height()-1);
                     logBox.slideToggle();
                     $("#nickLabel").text(nickname);
+                    $('#join').removeAttr("disabled");
                     break;
                 case "join":
                     appendEvent(obj.from, obj.messagetype, isSelf);
@@ -304,8 +316,11 @@ $(document).ready(function(){
         if (doNotReconnect == true) {
             return;
         }
+        $('#login-msg').text("");
+        loginStatus.html("");
         var nick = window.nick = getNickname($('#nick').val());
         $('#login-msg').text("Joining as " + nick + "...");
+        $('#join').prop("disabled", "disabled");
         c.setIrcNoticesEnabled(false);
         sock.send(JSON.stringify({ nickname: nick }));
         //start spinner
