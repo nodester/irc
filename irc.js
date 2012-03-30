@@ -9,6 +9,9 @@
  * @updated    : 17-03-2012
  * @repo       : http://github.com/nodester/irc
  * @version    : 2.0.0
+ * 
+ * @note       : Currently there is no implementation for IRC commands.
+ *             : This choice is by design. 
 */
 
 var http    = require('http')
@@ -158,53 +161,47 @@ io.sockets.on('connection', function (client) {
 
         //on parting the channel but remaining connected to the irc server
         irc.addListener('part', function (message) {
-            client.send(JSON.stringify({
-              messagetype: "part",
-              from: (message.person.nick),
-              channel: (message.params[0])
-            }));
-          });
+          client.send(JSON.stringify({
+            messagetype: "part",
+            from: (message.person.nick),
+            channel: (message.params[0])
+          }));
+        });
 
         //motd
         irc.addListener('372', function (raw) {
-            client.send(JSON.stringify({
-              messagetype: "motd",
-              //server
-              from: (raw.server),
-              //channel
-              channel: "",
-              //topic
-              message: (raw.params[1])
-            }));
+          client.send(JSON.stringify({
+            messagetype: "motd",
+            //server
+            from: (raw.server),
+            //channel
+            channel: "",
+            //topic
+            message: (raw.params[1])
+          }));
         });
 
         irc.addListener('376', function (raw) {
-            client.send(JSON.stringify({
-              messagetype: "endmotd",
-              //server
-              from: (raw.server)
-            }));
+          client.send(JSON.stringify({
+            messagetype: "endmotd",
+            //server
+            from: (raw.server)
+          }));
         });
         
         //welcome from ircserver
         irc.addListener('001', function (raw) {
-            client.send(JSON.stringify({
-              messagetype: "001",
-              //server
-              from: (raw.server),
-              //channel
-              channel: "",
-              //topic
-              message: (raw.params[1])
-            }));
+          client.send(JSON.stringify({
+            messagetype: "001",
+            //server
+            from: (raw.server),
+            //channel
+            channel: "",
+            //topic
+            message: (raw.params[1])
+          }));
         });
-
-/*
- * NOTICE
- * Must handle some quirks of the implementation of irc client protocol by irc-js
- * Will probably switch to raw.
- * 
-*/
+        
         irc.addListener('notice', function (message) {
           if (message.person !== undefined) {
             //notice for content
@@ -225,7 +222,29 @@ io.sockets.on('connection', function (client) {
           }
         });
         
-        irc.addListener('error', function () {console.log(arguments)});
+        //all IRC errors but 433 handles above
+        for (var err = 400; err < 600; err++) {
+          if (err != 433) {
+            irc.addListener(err, function (raw) {
+              client.send(JSON.stringify({
+                messagetype: "notice-err",
+                from: "",
+                channel: "",
+                message: raw.raw
+              }));
+            }); //addListener
+          }; //if
+        }; //for
+
+        //all client errors (e.g., timeouts)
+        irc.addListener('error', function () {
+          client.send(JSON.stringify({ 
+            messagetype: "error",
+            from: "",
+            channel: "",
+            message: ""
+          }));
+        });
       } else {
         // Maybe handle updating of nicks one day :)
       }
