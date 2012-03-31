@@ -91,10 +91,11 @@ io.sockets.on('connection', function (client) {
             hostname: 'irc.nodester.com',
             servername: 'irc.freenode.net',
             realname: nickname + ' via http://irc.nodester.com/'
-          }
+          },
+          log: false
         });
         
-        //console.log(irc)
+        console.log(irc)
 
         /*
          * Initiating a connection to the irc server
