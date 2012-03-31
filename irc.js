@@ -39,11 +39,11 @@ var tmr = setInterval(function () {
     currMem = process.memoryUsage().rss;
     if (currMem < minMem) {
         minMem = currMem;
-        return
     };
     if (currMem > maxMem) {
         maxMem = currMem;
     };
+    console.log(statTime, "curr:", currMem, "min:", minMem, "max: ", maxMem);
 }, 15*1000);
 
 process.on('uncaughtException', function (err) {
@@ -350,7 +350,6 @@ io.sockets.on('connection', function (client) {
           current: currMem,
           wud: bWebUsersDirty
         }));
-        console.log(statTime, "curr:", currMem, "min:", minMem, "max: ", maxMem);
     } else if (obj.hasOwnProperty('webusers')) {
         /*
          * Handler for a webclient request for webusers
