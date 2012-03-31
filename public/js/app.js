@@ -4,6 +4,7 @@ $(document).ready(function(){
     var nickname  = null;
     var textInput = $('#text_input');
     var nicks     = []; //could be an object if later we decide to add the nick attributes (+,... @)
+    var webNicks  = []; //web irc users
     var logBox    = $('#wrapper');
     var statusBar = $('#statusBar');
     var statusMsg = $('#statusmsg');
@@ -22,6 +23,7 @@ $(document).ready(function(){
         var bIrcNoticesEnabled = false; //allow display of "notice" messages during login, default false
         var bAutoScrollEnabled = true; //allow chat page scroll, default true
         var bTonesEnabled = true; //allow tones on pm (yellow) messages, default true
+        var bStatsEnabled = false; //display statistics
         var opts = {
             lines     : 12,
             length    : 7,
@@ -37,6 +39,8 @@ $(document).ready(function(){
             top       : 'auto',
             left      : 'auto'
         };
+        var stats = null; //statistics
+        var serverStartTime = null; //server start time
 
         this.getOpts = function() {
             return opts;
@@ -56,12 +60,35 @@ $(document).ready(function(){
             return bAutoScrollEnabled;
         };
         
-        this.setTonesEnables = function(enabled) {
+        this.setTonesEnabled = function(enabled) {
             bTonesEnabled = enabled;
-        }
+        };
         this.getTonesEnabled = function() {
             return bTonesEnabled;
-        }
+        };
+
+        this.updateStats = function(sts) {
+            stats = sts;
+            serverStartTime = new Date(stats.st);
+        };
+        this.getServerTime = function() {
+            return (serverStartTime !== null) ? serverStartTime.toRelativeTime() : 0;
+        };
+        this.getRss = function() {
+            return (stats !== null) ? (stats.current/1024/1024).toFixed(1) + "M" : "";
+        };
+        this.getMinRss = function () {
+            return (stats !== null) ? (stats.min/1024/1024).toFixed(1) + "M" : "";
+        };
+        this.getMaxRss = function () {
+            return (stats !== null) ? (stats.max/1024/1024).toFixed(1) + "M" : "";
+        };
+        this.setStatsEnabled = function(enabled) {
+            bStatsEnabled = enabled;
+        };
+        this.getStatsEnabled = function() {
+            return bStatsEnabled;
+        };
     };
     var c = new Container();
 
@@ -127,7 +154,16 @@ $(document).ready(function(){
         message = giveMeColors(message);
         message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
         message = message.replace(/\[[0-9][0-9]m/g,'');
-        row.html('<th class="author">' + from + '</th>' + '<td class="msg '+row_class+'">' + message + '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</td>');
+        var stats_class = (c.getStatsEnabled() == true) ? 'line-stats' : 'line-stats off';
+        var html =  '<th class="author">' + from + '</th>'
+                 +  '<td class="msg '+row_class+'">' + message
+                 +  '<span class="time">'+ (new Date()).toTimeString().substr(0,9)+'</span>';
+        if (c.getRss() == "") {
+            html += '</td>';
+        } else {
+            html += '<span class="'+stats_class+'">' + c.getRss() + '</span></td>';
+        }
+        row.html(html);
         chatBody.append(row);
         if (c.getAutoScrollEnabled() == true) {
             scrollBody();
@@ -167,11 +203,17 @@ $(document).ready(function(){
             message = "<u>unknown event type oO</u>";
             break;
         }
-        
-        row.html(
-            '<th class="author">' + from + '</th>'
-            + '<td class="msg">' + message + '<span class="time">'
-            + (new Date()).toTimeString().substr(0,9)+'</td>');
+
+        var stats_class = (c.getStatsEnabled() == true) ? 'line-stats' : 'line-stats off';
+        var html =  '<th class="author">' + from + '</th>'
+                  + '<td class="msg">' + message
+                  + '<span class="time">' + (new Date()).toTimeString().substr(0,9)+'</span>'; 
+        if (c.getRss() == "") {
+            html += '</td>';
+        } else {
+            html += '<span class="'+stats_class+'">' + c.getRss() + '</span></td>';
+        };
+        row.html(html);
         chatBody.append(row);
         if (c.getAutoScrollEnabled() == true) {
             scrollBody();
@@ -207,11 +249,19 @@ $(document).ready(function(){
             scrollBody();
         }
     };
-    
+
     var nicksToList = function () {
         var content = "";
-        for (var i = 0; i < nicks.length; i++) {
-            content += "<li>" + nicks[i] + "</li>";
+        if (webNicks.length > 0) {
+            for (var i = 0; i < nicks.length; i++) {
+                idx = webNicks.indexOf(nicks[i]);
+                (idx != -1) ? (content += '<li><p><span class="webnick">' + nicks[i] + '</span></p></li>') :
+                              (content += '<li>' + nicks[i] + '</li>');
+            }
+        } else {
+            for (var i = 0; i < nicks.length; i++) {
+                content += '<li>' + nicks[i] + '</li>';
+            }
         }
         nick_ul.html(content);
     };
@@ -257,6 +307,7 @@ $(document).ready(function(){
                     return;
                 case "message":
                     appendMessage(obj.from, obj.message, false);
+                    requestStatistics();
                     break;
                 case "topic":
                     appendMessage("Topic", obj.message, false);
@@ -301,6 +352,7 @@ $(document).ready(function(){
                         nicks.sort(cisort);
                         nicksToList();
                     }
+                    requestStatistics();
                     break;
                 case "quit":
                 case "part":
@@ -312,6 +364,21 @@ $(document).ready(function(){
                         }
                     }
                     nicksToList();
+                    requestStatistics();
+                    break;
+                case "statistics":
+                    c.updateStats(obj);
+                    if (obj.wud == true) {
+                        //the webusers list has been changed, we initiate retrieval
+                        requestWebUsers();
+                    }
+                    var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
+                    $("#nickLabel").html('<span class="'+header_class+'">Server up for: ' + c.getServerTime()
+                        + ', rss: ' + c.getMinRss() + '/' + c.getMaxRss() + '</span> ' + nickname);
+                    break;
+                case "webusers":
+                    webNicks = obj.wu;
+                    nicksToList();
                     break;
                 default:
                     alert(data);
@@ -321,7 +388,7 @@ $(document).ready(function(){
             console.log(data);
         }
     };
-    
+
     var handleConnect = function() {
         //cancel reconnect
         if (doNotReconnect == true) {
@@ -362,6 +429,19 @@ $(document).ready(function(){
             message: textInput.val()
         }));
         textInput.val('');
+    };
+
+    /*
+     * requesting statistics is user action triggered
+     * in case it is proven to be to resource intensive
+     * another solution can be sought, e.g., on a timer
+     */
+    var requestStatistics = function () {
+        sock.send(JSON.stringify({ statistics: ""}))
+    };
+
+    var requestWebUsers = function () {
+        sock.send(JSON.stringify({ webusers: ""}))
     };
 
     chatForm.on('submit',function(e){
@@ -439,7 +519,7 @@ $(document).ready(function(){
         }
         return old.replace(/\[[0-9]m|\[|[0-9][0-9]m|/g,'');
     };
-    
+
     /*
      * case insensitive compare
      * will not remove attributes like +, @ before comparison
@@ -455,32 +535,45 @@ $(document).ready(function(){
             return 0; 
         }
     };
-    
+
     //to resize "chat_scroller" to the size of screen
     $(window).resize(function() {
         $("#chat_scroller").height($("#nick_list").height()-1);
     });
-    
+
     var fn = function(obj) {
         c.setAutoScrollEnabled(false);
         if(obj.scrollTop() + obj.height() >= obj.prop("scrollHeight"))
         {
             c.setAutoScrollEnabled(true);
         }
-    }
+    };
 
     $("#chat_scroller").on('scroll', function() {
         fn($(this));
     });
-    
+
     $("#btnTones").on('click', function() {
-        //will not remember the status yet :), cookies, mmm
-        c.setTonesEnables(!c.getTonesEnabled());
+        //will not remember the tones status yet :), cookies, mmm
+        c.setTonesEnabled(!c.getTonesEnabled());
         if (c.getTonesEnabled() == true) {
             $("#btnTones").text("Disable tones");
         } else {
             $("#btnTones").text("Enable tones");
         }
-    })
-    
+    });
+
+    $('#btnStats').on('click', function() {
+        //will not remember the stats status yet :), cookies, mmm
+        c.setStatsEnabled(!c.getStatsEnabled());
+        if (c.getStatsEnabled() == true) {
+            $('#btnStats').text("Disable stats");
+            $('.line-stats').removeClass('off');
+            $('.header-stats').removeClass('off');
+        } else {
+            $('#btnStats').text("Enable stats");
+            $('.line-stats').addClass('off');
+            $('.header-stats').addClass('off');
+        }
+    });
 });

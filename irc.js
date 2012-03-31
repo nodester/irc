@@ -23,6 +23,28 @@ var http    = require('http')
   , app     = express.createServer()
   , io      = require('socket.io').listen(app);
 
+
+//when the app started
+var starttime = (new Date()).getTime();
+//get usage RAM in bytes
+var currMem = process.memoryUsage().rss;
+var minMem = currMem;
+var maxMem = currMem;
+var webUsers = [];
+var bWebUsersDirty = false; //flag to indicate if the webUsers changed
+
+//every 15 seconds poll for the memory
+var tmr = setInterval(function () {
+    currMem = process.memoryUsage().rss;
+    if (currMem < minMem) {
+        minMem = currMem;
+        return
+    };
+    if (currMem > maxMem) {
+        maxMem = currMem;
+    };
+}, 15*1000);
+
 process.on('uncaughtException', function (err) {
   console.log('Uncaught error: ' + err.stack);
 });
@@ -191,6 +213,8 @@ io.sockets.on('connection', function (client) {
         
         //welcome from ircserver
         irc.addListener('001', function (raw) {
+          webUsers.push(irc.options.nick);
+          bWebUsersDirty = true;
           client.send(JSON.stringify({
             messagetype: "001",
             //server
@@ -239,10 +263,7 @@ io.sockets.on('connection', function (client) {
         //all client errors (e.g., timeouts)
         irc.addListener('error', function () {
           client.send(JSON.stringify({ 
-            messagetype: "error",
-            from: "",
-            channel: "",
-            message: ""
+            messagetype: "error"
           }));
         });
       } else {
@@ -257,14 +278,37 @@ io.sockets.on('connection', function (client) {
           console.log(data);
           break;
       }
-    }
+    } else if (obj.hasOwnProperty('statistics')) {
+        //there is a lag here, at maximum though it is 16 seconds since last update
+        client.send(JSON.stringify({
+          messagetype: "statistics",
+          st: starttime,
+          min: minMem,
+          max: maxMem,
+          current: currMem,
+          wud: bWebUsersDirty
+        }));
+    } else if (obj.hasOwnProperty('webusers')) {
+        bWebUsersDirty = false;
+        client.send(JSON.stringify({
+          messagetype: "webusers",
+          wu: webUsers
+        }));
+    };
   });
 
   client.on('disconnect', function() {
     if (irc){
+      for (var i = 0; i < webUsers.length; i++) {
+          if (webUsers[i] == irc.options.nick) {
+              webUsers.splice(i, 1);
+              bWebUsersDirty = true;
+              break;
+          }
+      }
       irc.quit();
       irc = null;
     }
   });
-  
+
 });
