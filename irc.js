@@ -348,6 +348,7 @@ io.sockets.on('connection', function (client) {
           current: currMem,
           wud: bWebUsersDirty
         }));
+        console.log("min:", minMem, "max: ", maxMem, "current:", currMem);
     } else if (obj.hasOwnProperty('webusers')) {
         /*
          * Handler for a webclient request for webusers
