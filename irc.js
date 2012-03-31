@@ -24,7 +24,8 @@ var http    = require('http')
   , io      = require('socket.io').listen(app);
 
 //when the app started
-var starttime = (new Date()).getTime();
+var startTime = (new Date()).getTime();
+var statTime = startTime;
 //get usage RAM in bytes
 var currMem = process.memoryUsage().rss;
 var minMem = currMem;
@@ -34,14 +35,15 @@ var bWebUsersDirty = false; //flag to indicate if the webUsers changed
 
 //every 15 seconds poll for the memory
 var tmr = setInterval(function () {
+    statTime = new Date().toTimeString().substr(0,9);
     currMem = process.memoryUsage().rss;
     if (currMem < minMem) {
         minMem = currMem;
-        return
     };
     if (currMem > maxMem) {
         maxMem = currMem;
     };
+    console.log(statTime, "curr:", currMem, "min:", minMem, "max: ", maxMem);
 }, 15*1000);
 
 process.on('uncaughtException', function (err) {
@@ -342,7 +344,7 @@ io.sockets.on('connection', function (client) {
          */
         client.send(JSON.stringify({
           messagetype: "statistics",
-          st: starttime,
+          st: startTime,
           min: minMem,
           max: maxMem,
           current: currMem,
