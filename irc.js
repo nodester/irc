@@ -208,6 +208,31 @@ io.sockets.on('connection', function (client) {
         });
 
         /*
+         * Handler for server reporting nick change
+         */
+        irc.addListener('nick', function (message) {
+          var prevNick = message.person.nick;
+          var newNick = message.params[0];
+          /*
+           * if ever this client will send commands, the code below will be needed
+           *
+          for (var i = 0; i < webUsers.length; i++) {
+            if (webUsers[i] == prevNick) {
+              webUsers[i] = newNick;
+              bWebUsersDirty = true;
+              break;
+            };
+          };
+          */
+          client.send(JSON.stringify({
+            messagetype: "nick",
+            from: prevNick,
+            channel: "",
+            message: newNick
+          }));
+        });
+
+        /*
          * Handler for a motd line, 372
          * There are multiple calls as such until the entire motd is received
          * Note: not all servers emit a motd!
