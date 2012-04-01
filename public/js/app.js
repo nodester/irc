@@ -23,6 +23,9 @@ $(document).ready(function(){
     var candidate = ""; //candidate
     var source = []; //array of values to be matched
     var sourcePos = 0; //the search starting position
+    //used in multi tab completion
+    var patternPos = -1;
+    var prePattern = "";
     //-
 
     window.counter = 0;
@@ -592,24 +595,30 @@ $(document).ready(function(){
             if (prevKeyWasTab == false) {
                 prevKeyWasTab = true;
                 pattern = $('#text_input').val();
+                patternPos = pattern.lastIndexOf(" ");
+                if (patternPos != -1 ) {
+                    prePattern = pattern.substr(0, patternPos+1);
+                    pattern = pattern.substr(patternPos+1);
+                };
                 pattern = new RegExp("^"+pattern, "i");
                 sourcePos = 0;
                 candidate = incrementalSearch(pattern, source, sourcePos);
                 if (candidate.length > 0) {
                     //candidate found
-                    $('#text_input').val(candidate);
+                    $('#text_input').val(prePattern+candidate);
                     return;
                 }
             } else {
                 candidate = incrementalSearch(pattern, source, sourcePos);
                 if (candidate.length > 0) {
                     //candidate found
-                    $('#text_input').val(candidate);
+                    $('#text_input').val(prePattern+candidate);
                     return;
                 }
             }
         } else {
             prevKeyWasTab = false;
+            prePattern = "";
             source = nicks; //we do not want the source to change during tabcompletion
         }
     });
