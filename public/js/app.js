@@ -16,9 +16,18 @@ $(document).ready(function(){
     var loginStatus = $('#login-status-text');
     var doNotReconnect = false; //prohibit reconnect to nodester server after a socket disconnect, no retries
     var motdPrevLineEmpty = false; //flag for determining if the prev motd line was only spaces and asterisks
+
+    //used in tab completion
+    var prevKeyWasTab = false;
+    var pattern = ""; //text fragment respective pattern to look for
+    var candidate = ""; //candidate
+    var source = []; //array of values to be matched
+    var sourcePos = 0; //the search sartting position
+    //-
+
     window.counter = 0;
     $('#nick').focus();
-    
+
     var Container = function() {
         var bIrcNoticesEnabled = false; //allow display of "notice" messages during login, default false
         var bAutoScrollEnabled = true; //allow chat page scroll, default true
@@ -576,4 +585,51 @@ $(document).ready(function(){
             $('.header-stats').addClass('off');
         }
     });
+
+    $('#text_input').keydown( function(event) {
+        if (event.keyCode == 9) {
+            event.preventDefault();
+            if (prevKeyWasTab == false) {
+                prevKeyWasTab = true;
+                pattern = $('#text_input').val();
+                pattern = new RegExp("^"+pattern, "i");
+                sourcePos = 0;
+                candidate = incrementalSearch(pattern, source, sourcePos);
+                if (candidate.length > 0) {
+                    //candidate found
+                    $('#text_input').val(candidate);
+                    return;
+                }
+            } else {
+                candidate = incrementalSearch(pattern, source, sourcePos);
+                if (candidate.length > 0) {
+                    //candidate found
+                    $('#text_input').val(candidate);
+                    return;
+                }
+            }
+        } else {
+            prevKeyWasTab = false;
+            source = nicks; //we do not want the source to change during tabcompletion
+        }
+    });
+
+    var incrementalSearch = function(pattern, source, sp) {
+        result = "";
+        for (var i = sp; i < source.length; i++) {
+            var r = source[i].search(pattern);
+            sourcePos = (i+1 > source.length-1) ? 0 : i+1;
+            if (r == 0) {
+                return source[i];
+            }
+        }
+        for (var i = 0; i < sp; i++) {
+            var r = source[i].search(pattern);
+            sourcePos = i+1;
+            if (r == 0) {
+                return source[i];
+            }
+        }
+        return result;
+    };
 });
