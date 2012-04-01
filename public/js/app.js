@@ -22,7 +22,7 @@ $(document).ready(function(){
     var pattern = ""; //text fragment respective pattern to look for
     var candidate = ""; //candidate
     var source = []; //array of values to be matched
-    var sourcePos = 0; //the search sartting position
+    var sourcePos = 0; //the search starting position
     //-
 
     window.counter = 0;
@@ -615,16 +615,17 @@ $(document).ready(function(){
     });
 
     var incrementalSearch = function(pattern, source, sp) {
-        result = "";
+        var result = "";
+        var r = 0;
         for (var i = sp; i < source.length; i++) {
-            var r = source[i].search(pattern);
+            r = source[i].search(pattern);
             sourcePos = (i+1 > source.length-1) ? 0 : i+1;
             if (r == 0) {
                 return source[i];
             }
         }
         for (var i = 0; i < sp; i++) {
-            var r = source[i].search(pattern);
+            r = source[i].search(pattern);
             sourcePos = i+1;
             if (r == 0) {
                 return source[i];
