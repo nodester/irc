@@ -182,7 +182,7 @@ $(document).ready(function(){
         }
     };
 
-    var appendEvent = function (from, event, isSelf) {
+    var appendEvent = function (from, event, isSelf, extra) {
         var row = $('<tr/>');
         if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
@@ -199,6 +199,9 @@ $(document).ready(function(){
         case "quit":
         case "part":
             message = "<strong>left the channel</strong>";
+            break;
+        case "nick":
+            message = "<strong>is now known as " + extra + "</strong>";
             break;
         case "endmotd":
             message = motd;
@@ -377,6 +380,18 @@ $(document).ready(function(){
                     }
                     nicksToList();
                     requestStatistics();
+                    break;
+                case "nick":
+                    appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
+                    for (var i = 0; i < nicks.length; i++) {
+                        if (nicks[i] == obj.from) {
+                            nicks[i] = obj.message;
+                            break;
+                        }
+                    }
+                    nicks.sort(cisort);
+                    nicksToList();
+                    //requestStatistics(); this call will be needed if the web client will also send commends
                     break;
                 case "statistics":
                     c.updateStats(obj);
