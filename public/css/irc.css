@@ -3,27 +3,24 @@
 }
 html {
 	background: url(/grad.png);
-	font-family:"Open Sans";
+	font-family: "Verdana";
 }
-body {
-
-	/*  background: #d0d0d0;
-	color: #222;
-	font: 12px Helvetica, Arial, sans-serif;
-	padding: 0 0 30px;
-	opacity:0.7;
-	 */
-
-	margin:0;
+#rocket {
+	margin-left: auto;
+	margin-right: auto;
+	width: 8em;
+	top: 30px;
 }
-#rocket { margin-left: auto;   margin-right: auto;   width: 8em;top:30px;}
 #rocket img {
 	height:150px;
 	padding-top: 3px;
 	margin-left: -10px;
 }
 .rocket {
-	margin-left: auto;   margin-right: auto;   width: 100%;top:30px;
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+	top:30px;
 	text-align:center;
 }
 .btn.real {
@@ -96,9 +93,8 @@ a {
 .stats {
     right: 150px;
 }
-
 #nickLabel {
-    margin-top: 7px;
+    margin-top: 9px;
     position: absolute;
     right: 270px;
     text-align: right;
@@ -145,7 +141,7 @@ a {
 	padding-left: 20px;
 	font-weight: bold;
 	width:100% !important;
-	vertical-align: -webkit-baseline-middle
+	vertical-align: -webkit-baseline-middle;
 	position: fixed;
 	-moz-box-shadow:2px 2px #ccc;
 	-webkit-box-shadow:2px 2px #ccc;
@@ -153,6 +149,7 @@ a {
 	z-index:2e9;
 	position: fixed;
 	margin-top:-30px;
+    height: 36px;
 }
 .header img {
 	height:27px !important;
@@ -182,12 +179,13 @@ a {
 	position: fixed;
 	right: 0;
 	top: 37px;
-	width: 150px;
+	width: 155px;
 	background-color: #444;
 	border-left: 3px solid #FFD720;
 	box-shadow: -2px 0 #ccc;
 	color: white;
 	margin-bottom: 10px;
+	font-family: Verdana;
 }
 #nick_list ul {
 	list-style-type: none;
@@ -197,13 +195,13 @@ a {
 	border-bottom: 1px solid #CCC;
 	padding-bottom: 5px;
 	padding-top: 5px;
-	font-size: 15px;
+	font-size: 14px;
 }
 #chat_scroller {
     margin-top: 38px;
     overflow: auto;
     overflow-x: hidden;
-    margin-right: 4px;
+    margin-right: 9px;
     height: 30px;
 }
 #chat_body {
@@ -217,7 +215,8 @@ a {
 	font-weight: bold;
 	padding: 2px 4px 2px 10px;
 	text-align: right;
-	width: 100px;
+	width: 105px;
+	word-wrap: break-word;
 }
 #chat_body .msg {
 	background: #ccc;
@@ -231,9 +230,30 @@ a {
 	background: #444 !important;
 	color:#fff;
 }
-.me > .author{
+.me > .author {
 	background:#444;
 	color:#fff;
+}
+.msg-join {
+    color: #006600;
+}
+.msg-quitpart {
+    color: #663300;
+}
+.msg-nick {
+    color: #006666;
+}
+.msg-connected {
+	color: #669966;
+    font-weight: bold;
+}
+.msg-disconnected,
+.msg-unknown {
+    color: #999966;
+    font-weight: bold;
+}
+#chat_body .default {
+    text-shadow: none;
 }
 #chat_body tr:nth-child(2n) .msg {
 	background: #efefef;
@@ -261,6 +281,7 @@ a {
 	position: absolute;
 	right: 85px;
 	line-height: 30px;
+	/*width: 86%;*/
 }
 #chat_bar button {
 	padding: 0;
@@ -273,5 +294,8 @@ a {
 	height: 2em;
 }
 .gold {background-color:#FFD700 !important;}
-.me .time {color:#ccc !important;}
+.me .time {
+	color:#ccc !important;
+	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
 .off {display: none;}

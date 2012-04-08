@@ -24,14 +24,16 @@ var http    = require('http')
   , io      = require('socket.io').listen(app);
 
 //when the app started
-var startTime = (new Date()).getTime();
-var statTime = startTime;
+var startTime = (new Date()).getTime(),
+    statTime = startTime;
+
 //get usage RAM in bytes
-var currMem = process.memoryUsage().rss;
-var minMem = currMem;
-var maxMem = currMem;
-var webUsers = [];
-var bWebUsersDirty = false; //flag to indicate if the webUsers changed
+var currMem = process.memoryUsage().rss,
+    minMem = currMem,
+    maxMem = currMem;
+
+var webUsers = [],
+    bWebUsersDirty = false; //flag to indicate if the webUsers changed
 
 //every 15 seconds poll for the memory
 var tmr = setInterval(function () {
@@ -76,9 +78,9 @@ console.log('IRC#nodester is running on %d',app.address().port)
 */
 io.set('log level', 1); //reduce debug messages
 io.sockets.on('connection', function (client) {
-  var socket = client;
-  var irc = null;
-  var nickname = null;
+  var socket = client,
+      irc = null,
+      nickname = null;
   client.on('message', function(data) {
     var obj = JSON.parse(data);
     if (obj.hasOwnProperty('nickname')) {
@@ -211,8 +213,8 @@ io.sockets.on('connection', function (client) {
          * Handler for server reporting nick change
          */
         irc.addListener('nick', function (message) {
-          var prevNick = message.person.nick;
-          var newNick = message.params[0];
+          var prevNick = message.person.nick,
+              newNick = message.params[0];
           /*
            * if ever this client will send commands, the code below will be needed
            *
@@ -321,7 +323,7 @@ io.sockets.on('connection', function (client) {
 
         /*
          * Handler for all irc server errors
-         * This has nothing to do with the irc-js implementation errors
+         * This has nothing to do with the eventual irc-js implementation errors
          * Handles all error messages but 433 handled above
          */
         for (var err = 400; err < 600; err++) {
