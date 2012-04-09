@@ -253,8 +253,10 @@ a {
     color: #999966;
     font-weight: bold;
 }
-#chat_body .default {
+#chat_body .btn > .default {
     text-shadow: none;
+    color: #000;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.20);
 }
 #chat_body tr:nth-child(2n) .msg {
 	background: #efefef;
@@ -294,9 +296,15 @@ a {
 	clear: both;
 	height: 2em;
 }
-.gold {background-color:#FFD700 !important;}
+.gold {
+	background-color:#FFD700 !important;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+}
 .me .time {
 	color:#ccc !important;
 	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+.time {
+    text-shadow: none;
 }
 .off {display: none;}
