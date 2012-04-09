@@ -3,7 +3,7 @@
 }
 html {
 	background: url(/grad.png);
-	font-family: "Verdana";
+	font-family: "Open Sans";
 }
 #rocket {
 	margin-left: auto;
@@ -48,7 +48,6 @@ html {
 	font-size: 13px;
 	line-height: 18px;
 	color: #333;
-	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
 	vertical-align: middle;
 	background-color: whiteSmoke;
 	background-repeat: repeat-x;
@@ -179,13 +178,12 @@ a {
 	position: fixed;
 	right: 0;
 	top: 37px;
-	width: 155px;
+	width: 150px;
 	background-color: #444;
 	border-left: 3px solid #FFD720;
 	box-shadow: -2px 0 #ccc;
 	color: white;
 	margin-bottom: 10px;
-	font-family: Verdana;
 }
 #nick_list ul {
 	list-style-type: none;
@@ -201,7 +199,7 @@ a {
     margin-top: 38px;
     overflow: auto;
     overflow-x: hidden;
-    margin-right: 9px;
+    margin-right: 4px;
     height: 30px;
 }
 #chat_body {
@@ -253,11 +251,9 @@ a {
     color: #999966;
     font-weight: bold;
 }
-#chat_body .btn > .default {
-    text-shadow: none;
+/*#chat_body .btn > .default {
     color: #000;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.20);
-}
+}*/
 #chat_body tr:nth-child(2n) .msg {
 	background: #efefef;
 }
@@ -298,13 +294,14 @@ a {
 }
 .gold {
 	background-color:#FFD700 !important;
-	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+	/*text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);*/
 }
 .me .time {
 	color:#ccc !important;
-	text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
 }
-.time {
-    text-shadow: none;
+.off {
+	display: none;
 }
-.off {display: none;}
+.msg {
+	color: black;
+}

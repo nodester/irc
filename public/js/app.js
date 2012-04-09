@@ -599,11 +599,11 @@ $(document).ready(function() {
         //will not remember the stats status yet :), cookies, mmm
         c.setStatsEnabled(!c.getStatsEnabled());
         if (c.getStatsEnabled() == true) {
-            $('#btnStats').text("Disable stats");
+            $('#btnStats').text("Hide stats");
             $('.line-stats').removeClass('off');
             $('.header-stats').removeClass('off');
         } else {
-            $('#btnStats').text("Enable stats");
+            $('#btnStats').text("Show stats");
             $('.line-stats').addClass('off');
             $('.header-stats').addClass('off');
         }
