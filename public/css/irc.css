@@ -226,7 +226,8 @@ a {
 #chat_body .me .author {
 	font-style: italic;
 }
-.me > .msg {
+.me > .msg,
+.me > .msg > .msg-join {
 	background: #444 !important;
 	color:#fff;
 }
