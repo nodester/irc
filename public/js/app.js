@@ -405,8 +405,8 @@ $(document).ready(function() {
                         requestWebUsers();
                     }
                     var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
-                    nickLabel.html('<span class="'+header_class+'">Server up for: ' + c.getServerTime()
-                        + ', mem: ' + c.getMinRss() + '/' + c.getMaxRss() + 'MB</span> ' + nickname);
+                    nickLabel.html('<span class="'+header_class+'">Server up for ' + c.getServerTime()
+                        + ', using ' + c.getMinRss() + '-' + c.getMaxRss() + ' MB of RAM</span> ' + nickname);
                     break;
                 case "webusers":
                     webNicks = obj.wu;
@@ -446,6 +446,9 @@ $(document).ready(function() {
      * so we make sure the socket won't reconnect: doNotReconnect = true
      */
     var handleDisconnect = function () {
+        if (doNotReconnect == true) {
+            return;
+        };
         doNotReconnect = true;
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
