@@ -4,7 +4,6 @@ $(document).ready(function() {
         nickname = null,
         nicks = [], //could be an object if later we decide to add the nick attributes (+,... @)
         webNicks = [], //web irc users
-        doNotReconnect = false, //prohibit reconnect to nodester server after a socket disconnect, no retries
         motdPrevLineEmpty = false, //flag for determining if the prev motd line was only spaces and asterisks
         //html elements
         textInput = $('#text_input'),
@@ -116,7 +115,6 @@ $(document).ready(function() {
 
     joinForm.on('submit', function(e) {
         e.preventDefault();
-        doNotReconnect = false;
         if (nickText.val() !== '') {
             loginWrong.addClass('off');
             loginMsg.removeClass('off');
@@ -124,7 +122,7 @@ $(document).ready(function() {
             if (sock !== null && sock.socket.connected === false) {
                 sock.socket.reconnect();
             } else {
-                sock = io.connect('http://' + window.location.host);
+                sock = io.connect('http://' + window.location.host, {'reconnect': false});
                 sock.on('message', handleMessage);
                 sock.on('disconnect', handleDisconnect);
                 sock.on('connect', handleConnect);
@@ -422,10 +420,6 @@ $(document).ready(function() {
     };
 
     var handleConnect = function () {
-        //cancel reconnect
-        if (doNotReconnect == true) {
-            return;
-        }
         loginMsg.text("");
         loginStatus.html("");
         var nick = window.nick = getNickname(nickText.val());
@@ -440,16 +434,9 @@ $(document).ready(function() {
     
     /*
      * set a time delay for disconnect
-     * 
      * in case we exit the form we do not want the user to see it
-     * the socket has a reconnect timeout that does not help us with irc here
-     * so we make sure the socket won't reconnect: doNotReconnect = true
      */
     var handleDisconnect = function () {
-        if (doNotReconnect == true) {
-            return;
-        };
-        doNotReconnect = true;
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
             nicks = [];
