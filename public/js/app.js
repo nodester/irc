@@ -126,6 +126,8 @@ $(document).ready(function() {
             ircClient.clearAll();
             ircClient.on("connected", handleOnConnected);
             ircClient.on("disconnected", handleOnDisconnected);
+            ircClient.on("closed", handleOnClosed);
+            ircClient.on("error", handleOnError);
             ircClient.on("data", handleOnData);
             ircClient.connect();
         } else {
@@ -451,6 +453,21 @@ $(document).ready(function() {
             nicks = [];
             nicksToList();
         }, 1000);
+    };
+
+    /*
+     * TODO
+     * These messages and actions are to be refined later once we cover
+     * the entire existing functionality
+     */
+    var handleOnClosed = function () {
+        appendEvent("*", "disconnected", false);
+        nicks = [];
+        nicksToList();
+    };
+
+    var handleOnError = function () {
+        appendEvent("*", "error", false);
     };
 
     var sendMessage = function () {

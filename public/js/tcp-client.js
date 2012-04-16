@@ -8,7 +8,7 @@
 var Client = function (host, port) {
     this.host = host;
     this.port = port;
-    this.webUAIsConnected = false;
+    this.sioIsConnected = false;
     this.endpointIsConnected = false;
     this.callbacks = {};
     return this;
@@ -18,24 +18,28 @@ Client.prototype.connect = function () {
     var that = this;
     
     if (typeof this.socket === "undefined" || this.socket === null) {
-        this.socket = io.connect("http://" + window.location.host, {"reconnect": false})
+        this.socket = io.connect("http://" + window.location.host, {"reconnect": false});
     } else {
+        //these are retries or reconnects
         if (this.socket.socket.connected) {
-            //TODO
+            that.socket.removeAllListeners("connect");
+            that.socket.removeAllListeners("disconnect");
+            that.socket.removeAllListeners("message");
+            that.socket.send(JSON.stringify({action: "connect", host: that.host, port: that.port}));
         } else {
-            socket.socket.reconnect();
+            this.socket.socket.reconnect();
         }
     }
 
     this.socket.on("connect", function () {
-        that.webUAIsConnected = true;
+        that.sioIsConnected = true;
         that.socket.send(JSON.stringify({action: "connect", host: that.host, port: that.port}));
     });
     
     this.socket.on("disconnect", function () { 
-        that.webUAIsConnected = false;
+        that.sioIsConnected = false;
         that.endpointIsConnected = false;
-        that.emit("error", "the socket connection to UA was lost");
+        that.emit("disconnected"); //the socket connection was lost
     });
     
     this.socket.on("message", function (data) { 
@@ -45,12 +49,12 @@ Client.prototype.connect = function () {
                 that.endpointIsConnected = true;
                 that.emit("connected");     
                 break;
+            case "closed":
+                that.endpointIsConnected = false;
+                that.emit("closed"); //the proxy lost connection to irc server
             case "data":
                 that.emit("data", {data: data.data});
                 break;
-            case "closed":
-                that.endpointIsConnected = false;
-                that.emit("closed");
             default:
         }
     });
@@ -59,12 +63,12 @@ Client.prototype.connect = function () {
 }
 
 Client.prototype.disconnect = function () {
-    if (this.webUAIsConnected)
+    if (this.sioIsConnected)
         this.socket.send(JSON.stringify({action: "disconnect"}));
 }
 
 Client.prototype.send = function (data1) {
-    if (this.webUAIsConnected && this.endpointIsConnected) {
+    if (this.sioIsConnected && this.endpointIsConnected) {
         this.socket.send(JSON.stringify({action: "data", data: data1}));
     }
 }
@@ -78,4 +82,8 @@ Client.prototype.on = function (event, callback) {
     if (typeof callback === "function")
         this.callbacks[event] = callback;
     return this;
+}
+
+Client.prototype.clearAll = function () {
+    this.callbacks = {};
 }

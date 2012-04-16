@@ -25,8 +25,16 @@ IRCClient.prototype.connect = function () {
         that.emit("connected");
     });
 
-    this.client.on("closed", function () {
+    this.client.on("disconnected", function () {
         that.emit("disconnected");
+    });
+
+    this.client.on("closed", function () {
+        that.emit("closed");
+    });
+
+    this.client.on("error", function () {
+        that.emit("error");
     });
 
     this.client.on("data", function (chunk) {
@@ -58,6 +66,12 @@ IRCClient.prototype.joinChannel = function (channel) {
     this.client.send("JOIN " + channel + "\r\n");
 }
 
+IRCClient.prototype.quit = function (reason) {
+    reason = reason || "session closed";
+    this.channel = channel;
+    this.client.send("QUIT :" + reason + "\r\n");
+}
+
 IRCClient.prototype.disconnect = function () {
     this.client.disconnect();
 }
@@ -66,6 +80,7 @@ IRCClient.prototype.sendPrivMsg = function (message) {
     this.client.send("PRIVMSG " + this.channel + " :" + message + "\r\n");
 }
 
+//TODO make this private
 IRCClient.prototype.send = function (message) {
     this.client.send(message);
 }
@@ -79,6 +94,7 @@ IRCClient.prototype.requestWebUsers = function () {
 }
 
 IRCClient.prototype.clearAll = function () {
+    this.client.clearAll();
     this.callbacks = {};
 }
 
@@ -289,7 +305,6 @@ var emulateMessage = function (that, message) {
 
     /*
      * Handler for quitting
-     * This event will not be triggered after an irc.quit() call
      */
     case "QUIT":
         that.emit("data", JSON.stringify({

@@ -27,7 +27,7 @@ var Proxy = function (client) {
     });
     
     socket.on("data", function (data) {
-        console.log("data arrived:" + data + ", length: " + data.length );
+        console.log("RECV:" + data + ", length: " + data.length );
         if (clientIsConnected)
             client.send(JSON.stringify({action: "data", data: data}));
     });
@@ -47,16 +47,16 @@ var Proxy = function (client) {
         msg = JSON.parse(message);
         switch (msg.action) {
             case "connect":
-                console.log("connect request received: " + msg.host + ":" + msg.port);
+                console.log("CONNECT: " + msg.host + ":" + msg.port);
                 socket.connect(msg.port, msg.host);
                 break;
             case "disconnect":
-                console.log("disconnect request received");
+                console.log("DISCONNECT");
                 if (socketIsConnected)
                     socket.end();
                 break;
             case "data":
-                console.log("data request received");
+                console.log("SEND");
                 if (socketIsConnected) {
                     console.log(msg.data);
                     socket.write(msg.data);
