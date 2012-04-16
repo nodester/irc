@@ -20,8 +20,11 @@ Client.prototype.connect = function () {
     if (typeof this.socket === "undefined" || this.socket === null) {
         this.socket = io.connect("http://" + window.location.host, {"reconnect": false})
     } else {
-        if (!this.socket.socket.connected)
+        if (this.socket.socket.connected) {
+            //TODO
+        } else {
             socket.socket.reconnect();
+        }
     }
 
     this.socket.on("connect", function () {

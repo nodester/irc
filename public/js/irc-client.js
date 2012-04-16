@@ -6,6 +6,8 @@
 var IRCClient = function (host, port) {
     this.host = host;
     this.port = port;
+    this.channel = ""; //gets filled in at join
+    this.nick = ""; //gets filled in at login or can be changed by the irc server
     this.client = new Client(host, port);
 
     //callbacks for the IRCClient caller
@@ -34,8 +36,8 @@ IRCClient.prototype.connect = function () {
         lines.forEach(function (line) {
             var message = parseMessage(line, true);
             try {
+                //to make this implementation compatible with the former irc client at irc.nodester.com
                 emulateMessage(that, message);
-                //that.emit("data", message);
             } catch ( err ) {
                 that.emit("error", err.message);
             }
@@ -46,11 +48,13 @@ IRCClient.prototype.connect = function () {
 }
 
 IRCClient.prototype.registerNick = function (nick) {
+    this.nick = nick;
     this.client.send("NICK " + nick + "\r\n");
     this.client.send("USER " + nick + " irc.nodester.com irc.freenode.net :" + nick + " via http://irc.nodester.com\r\n");
 }
 
 IRCClient.prototype.joinChannel = function (channel) {
+    this.channel = channel;
     this.client.send("JOIN " + channel + "\r\n");
 }
 
@@ -58,8 +62,11 @@ IRCClient.prototype.disconnect = function () {
     this.client.disconnect();
 }
 
+IRCClient.prototype.sendPrivMsg = function (message) {
+    this.client.send("PRIVMSG " + this.channel + " :" + message + "\r\n");
+}
+
 IRCClient.prototype.send = function (message) {
-    //format message if needed
     this.client.send(message);
 }
 
@@ -149,29 +156,18 @@ var parseMessage = function (line, stripColors) {
  * this is transitional to former irc.nodester.com implementation
  * and some irc specific messaging
  * 
- * the message param has the following fields:
- * .server
- * .nick
- * .user
- * .host
- * .command
- * .rawCommand
- * .commandType
- * .args as array
+ * the message parameter has the following fields:
+ * .server .nick .user .host .command .rawCommand .commandType .args as array
  * 
  * the output data complies with the former irc.nodester.com JSON format:
- * .messagetype
- * .from
- * .channel
- * .message
- * .users
+ * .messagetype .from .channel .message .users
  */
 var emulateMessage = function (that, message) {
     switch (message.command) {
 
     /*
-    * Handler for notices
-    */
+     * Handler for notices
+     */
     case "NOTICE":
         if (message.nick !== undefined) {
             //notice for content
@@ -179,8 +175,7 @@ var emulateMessage = function (that, message) {
                 messagetype: "notice-msg",
                 from: (message.nick),
                 channel: "",
-                message: (message.args[1]),
-                users: ""
+                message: (message.args[1])
             }));
         } else {
             //notice at login
@@ -188,18 +183,17 @@ var emulateMessage = function (that, message) {
                 messagetype: "notice",
                 from: (message.args[0]),
                 channel: "",
-                message: (message.args[1]),
-                users: ""
+                message: (message.args[1])
             }));
         }
         break;
 
     /*
-    * Handler for the welcome message
-    * This indicates that the irc server accepted our request, and while there
-    * are further possible notifications, for us this is a sign that we can
-    * close the login screen and open the main window.
-    */
+     * Handler for the welcome message
+     * This indicates that the irc server accepted our request, and while there
+     * are further possible notifications, for us this is a sign that we can
+     * close the login screen and open the main window.
+     */
     case "001":
         //webUsers.push(irc.options.nick);
         //bWebUsersDirty = true; //for self
@@ -207,29 +201,27 @@ var emulateMessage = function (that, message) {
             messagetype: "001",
             from: (message.args[0]),
             channel: "",
-            message: (message.args[1]),
-            users: ""
+            message: (message.args[1])
         }));
         break;
 
     /*
-    * Handler for a motd line, 372, max 80 chars
-    * There are multiple calls as such until the entire motd is received
-    * Note: not all servers emit a motd!
-    */
+     * Handler for a motd line, 372, max 80 chars
+     * There are multiple calls as such until the entire motd is received
+     * Note: not all servers emit a motd!
+     */
     case "372":
         that.emit("data", JSON.stringify({
             messagetype: "motd",
             from: (message.server),
             channel: "",
-            message: (message.args[1]),
-            users: ""
+            message: (message.args[1])
         }));
         break
 
     /*
-    * Handler for the end of motd, 376
-    */
+     * Handler for the end of motd, 376
+     */
     case "376":
         that.emit("data", JSON.stringify({
             messagetype: "endmotd",
@@ -238,175 +230,191 @@ var emulateMessage = function (that, message) {
         }));
         break;
 
+    /*
+     * Handler for join
+     */
+    case "JOIN":
+        that.emit("data", JSON.stringify({
+            messagetype: "join",
+            from: (message.nick),
+            channel: (message.args[0]),
+            message: (message.user + "@" + message.host)
+        }));
+        break;
+
+    /*
+     * Handler for names.
+     * There can be multiple such calls as the names are retrieved, 353
+     */
+    case "353":
+        that.emit("data", JSON.stringify({
+            messagetype: "names",
+            //nick
+            from: (message.args[0]),
+            //channel
+            channel: (message.args[2]),
+            message: "",
+            //users as a space delimited string
+            users: (message.args[3].split(" "))
+        }));
+        break;
+
+    /*
+     * Handler for end of names list, 366
+     */
+    case "366":
+        that.emit("data", JSON.stringify({
+            messagetype: "endnames",
+            //nick
+            from: (message.args[0]),
+            //channel
+            channel: (message.args[1]),
+        }));
+        break;
+
+    /*
+     * Handler for the topic, 332
+     */
+    case "332":
+        that.emit("data", JSON.stringify({
+            messagetype: "topic",
+            //nick
+            from: (message.args[0]),
+            //channel
+            channel: (message.args[1]),
+            //topic
+            message: (message.args[2])
+        }));
+        break;
+
+    /*
+     * Handler for quitting
+     * This event will not be triggered after an irc.quit() call
+     */
+    case "QUIT":
+        that.emit("data", JSON.stringify({
+            messagetype: "quit",
+            from: (message.nick),
+            channel: "",
+            message: (message.args[0])
+        }));
+        break;
+
+    /*
+     * Handler for parting the channel, while remaining connected to the irc server
+     */
+    case "PART":
+        that.emit("data", JSON.stringify({
+            messagetype: "part",
+            from: (message.nick),
+            channel: (message.args[0])
+        }));
+        break;
+
+    /*
+     * Handler for private messages
+     * There is no private messaging using the web client.
+     * in case o private message is received, a message is sent back to the caller
+     * explaining that there is no privacy!
+     */
+    case "PRIVMSG":
+        if (message.args[0] == that.channel) {
+            that.emit("data", JSON.stringify({
+                messagetype: "message",
+                from: message.nick,
+                channel: (message.args[0]),
+                message: (message.args[1])
+            }));
+        } else {
+            that.send("PRIVMSG " + message.nick
+                    + " :I am using a web client. I can only talk on channel #nodester.\r\n");
+        }
+        break;
+
+    /*
+     * Handler for server reporting nick change
+     */
+    case "NICK":
+        var prevNick = message.nick,
+            newNick = message.args[0];
+        /*
+         * if ever this client will send commands, the code below might be needed
+         *
+        for (var i = 0; i < webUsers.length; i++) {
+            if (webUsers[i] == prevNick) {
+                webUsers[i] = newNick;
+                bWebUsersDirty = true;
+                break;
+            };
+        };
+         */
+        if (that.nick == prevNick)
+            that.nick = newNick;
+        that.emit("data", JSON.stringify({
+            messagetype: "nick",
+            from: prevNick,
+            channel: "",
+            message: newNick
+        }));
+        break
+
+    /*
+     * Handler for irc error 433: nick already in use.
+     * We use this particular handler for the login screen
+     */
+    case "433":
+        that.emit("data", JSON.stringify({
+            messagetype: "433",
+            //rejected nick
+            from: (message.args[1]),
+            //the irc server as channel
+            channel: message.server,
+            //the rejection message, e.g., "Nickname is already in use."
+            message: (message.args[2])
+        }));
+        break;
+
+    /*
+     * Handler for a server PING
+     */
+    case "PING":
+        that.send("PONG :" + message.args[0] + "\r\n");
+        break
+
+    /*
+     * Handler for a server ERROR
+     */
+    case "ERROR":
+        that.emit("data", JSON.stringify({
+            messagetype: "error",
+            from: "",
+            channel: "",
+            //the error message
+            message: (message.args[0])
+        }));
+        break
+
     default:
-        break;    
+        /*
+         * Handler for all irc server error messages, but 433 handled above
+         */
+        var errorCode = parseInt(message.command);
+        if ((errorCode !== NaN) && (errorCode >= 400) && (errorCode <= 600)) {
+            that.emit("data", JSON.stringify({
+                messagetype: "notice-err",
+                from: message.args[0],
+                channel: message.args[1],
+                message: message.args[2]
+            }));
+        }
     } 
 };
-
-//        /*
-//         * Handler for private messages
-//         * There is no private messaging using the web client.
-//         * in case o private message is received, a message is sent back to the caller
-//         * explaining that there is no privacy!
-//         */
-//        irc.addListener('privmsg', function (message) {
-//          if (message.params[0] == cfg.channel) {
-//            client.send(JSON.stringify({
-//              messagetype: "message",
-//              from: message.person.nick,
-//              channel: (message.params[0]),
-//              message: (message.params[1])
-//            }));
-//          } else {
-//            irc.privmsg(message.person.nick,
-//              "Automatic: I am using a web client. I can only talk on channel #nodester.");
-//          }
-//        });
-//        
-//        /*
-//         * Handler for join
-//         */
-//        irc.addListener('join', function (message) {
-//          client.send(JSON.stringify({
-//            messagetype: "join",
-//            from: (message.person.nick),
-//            channel: (message.params[0])
-//          }));
-//        });
-//        
-//        /*
-//         * Handler for the topic, 332
-//         */
-//        irc.addListener('332', function (raw) {
-//          client.send(JSON.stringify({
-//            messagetype: "topic",
-//            //nick
-//            from: (raw.params[0]),
-//            //channel
-//            channel: (raw.params[1]),
-//            //topic
-//            message: (raw.params[2])
-//          }));
-//        });
-//        
-//        /*
-//         * Handler for names.
-//         * There can be multiple such calls as the names are retrieved, 353
-//         */
-//        irc.addListener('353', function (raw) {
-//          client.send(JSON.stringify({
-//            messagetype: "names",
-//            //nick
-//            from: (raw.params[0]),
-//            //channel
-//            channel: (raw.params[2]),
-//            message: "",
-//            //users as a space delimited string
-//            users: (raw.params[3].split(" "))
-//          }));
-//        });
-//        
-//        /*
-//         * Handler for end of names list, 366
-//         */
-//        irc.addListener('366', function (raw) {
-//          client.send(JSON.stringify({
-//            messagetype: "endnames",
-//            //nick
-//            from: (raw.params[0]),
-//            //channel
-//            channel: (raw.params[1]),
-//          }));
-//        });
-//
-//        /*
-//         * Handler for quitting
-//         * This event will not be triggered after an irc.quit() call
-//         */
-//        irc.addListener('quit', function (message) {
-//          client.send(JSON.stringify({
-//            messagetype: "quit",
-//            from: (message.person.nick),
-//            channel: (message.params[0])
-//          }));
-//        });
-//
-//        /*
-//         * Handler for parting the channel, while remaining connected to the irc server
-//         */
-//        irc.addListener('part', function (message) {
-//          client.send(JSON.stringify({
-//            messagetype: "part",
-//            from: (message.person.nick),
-//            channel: (message.params[0])
-//          }));
-//        });
-//
-//        /*
-//         * Handler for server reporting nick change
-//         */
-//        irc.addListener('nick', function (message) {
-//          var prevNick = message.person.nick,
-//              newNick = message.params[0];
-//          /*
-//           * if ever this client will send commands, the code below will be needed
-//           *
-//          for (var i = 0; i < webUsers.length; i++) {
-//            if (webUsers[i] == prevNick) {
-//              webUsers[i] = newNick;
-//              bWebUsersDirty = true;
-//              break;
-//            };
-//          };
-//          */
-//          client.send(JSON.stringify({
-//            messagetype: "nick",
-//            from: prevNick,
-//            channel: "",
-//            message: newNick
-//          }));
-//        });
-//
-//        /*
-//         * Handler for irc error 433: nick already in use.
-//         * We use this particular handler for the login screen
-//         */
-//        irc.addListener('433', function (message) {
-//          client.send(JSON.stringify({
-//            messagetype: "433",
-//            //rejected nick
-//            from: (message.params[1]),
-//            //the irc server as channel
-//            channel: message.server,
-//            //the rejection message, usually "Nickname is already in use."
-//            message: (message.params[2])
-//          }));
-//        });
-//
-//        /*
-//         * Handler for all irc server errors
-//         * This has nothing to do with the eventual irc-js implementation errors
-//         * Handles all error messages but 433 handled above
-//         */
-//        for (var err = 400; err < 600; err++) {
-//          if (err != 433) {
-//            irc.addListener(err, function (raw) {
-//              client.send(JSON.stringify({
-//                messagetype: "notice-err",
-//                from: "",
-//                channel: "",
-//                message: raw.raw
-//              }));
-//            }); //addListener
-//          }; //if
-//        }; //for
-//
-//        /*
-//         * Handler for our own client
-//         * e.g., timeout
-//         */
-//        irc.addListener('error', function () {
-//          client.send(JSON.stringify({ 
-//            messagetype: "error"
-//          }));
-//        });
+///*
+//* Handler for our own client
+//* e.g., timeout
+//*/
+//irc.addListener('error', function () {
+//client.send(JSON.stringify({
+// messagetype: "error"
+//}));
+//});

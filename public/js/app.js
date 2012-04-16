@@ -1,6 +1,7 @@
 $(document).ready(function() {
     var ircClient = new IRCClient("irc.freenode.net", 6667);
-    var rv = null,
+    var channel = "#nodester",
+        rv = null,
         nickname = null,
         nicks = [], //could be an object if later we decide to add the nick attributes (+,... @)
         webNicks = [], //web irc users
@@ -121,7 +122,7 @@ $(document).ready(function() {
             chatBody.text("");
             
             //initiate connect to the irc server
-            ircClient.disconnect();
+            //ircClient.disconnect();
             ircClient.clearAll();
             ircClient.on("connected", handleOnConnected);
             ircClient.on("disconnected", handleOnDisconnected);
@@ -187,6 +188,7 @@ $(document).ready(function() {
     };
 
     var appendEvent = function (from, event, isSelf, extra) {
+        extra = extra || "no reason";
         var row = $('<tr/>');
         if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
@@ -198,13 +200,20 @@ $(document).ready(function() {
         
         switch (event) {
         case "join":
-            message = '<span class="msg-join">joined the channel</span>';
+            message = '<span class="msg-join">joined (' + extra + ')</span>';
             break;
         case "quit":
+            message = '<span class="msg-quitpart">left (' + extra  + ')</span>';
+            break;
         case "part":
-            message = '<span class="msg-quitpart">left the channel</span>';
+            message = '<span class="msg-quitpart">parted (' + extra  + ')</span>';
             break;
         case "nick":
+            if (isSelf) {
+                //server has automatically changed the nickname
+                nickname = extra;
+                nickLabel.text(nickname);
+            }
             message = '<span class="msg-nick">is now known as ' + extra + '</span>';
             break;
         case "endmotd":
@@ -300,10 +309,8 @@ $(document).ready(function() {
                     loginWrong.text(obj.message);
                     joinBtn.removeAttr("disabled");
                     return;
-                //notice at login and...
                 case "notice":
                 case "notice-err":
-                //... notice for content    
                 case "notice-msg":
                     if (c.getIrcNoticesEnabled() == true) {
                         appendMessage(obj.from, obj.message, false);
@@ -314,13 +321,13 @@ $(document).ready(function() {
                         loginStatus.html(html); 
                     }
                     break;
-                case "error":  //nick already in use
+                case "error":  //any error
                     window.spinner.stop();
                     ircClient.disconnect();
                     loginMsg.addClass('off');
                     loginWrong.text("");
                     loginWrong.removeClass('off');
-                    loginWrong.text("Oh well, try again!");
+                    loginWrong.text(obj.message);
                     joinBtn.removeAttr("disabled");
                     return;
                 case "message":
@@ -362,11 +369,11 @@ $(document).ready(function() {
                     logBox.slideToggle();
                     nickLabel.text(nickname);
                     joinBtn.removeAttr("disabled");
-                    //initiate join to irc channel
-//TODO                    ircClient.joinChannel("#nodester");
+                    //initiate one channel join
+                    ircClient.joinChannel(channel);
                     break;
                 case "join":
-                    appendEvent(obj.from, obj.messagetype, isSelf);
+                    appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
                     if (isSelf == false) {
                         nicks.push(obj.from);
                         nicks.sort(cisort);
@@ -376,7 +383,7 @@ $(document).ready(function() {
                     break;
                 case "quit":
                 case "part":
-                    appendEvent(obj.from, obj.messagetype, isSelf);
+                    appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
                     for (var i = 0; i < nicks.length; i++) {
                         if (nicks[i] == obj.from) {
                             nicks.splice(i,1);
@@ -448,7 +455,7 @@ $(document).ready(function() {
 
     var sendMessage = function () {
         appendMessage(nickname, textInput.val(), true);
-        ircClient.send(textInput.val());
+        ircClient.sendPrivMsg(textInput.val());
         textInput.val('');
     };
 
