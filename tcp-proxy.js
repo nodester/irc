@@ -5,7 +5,7 @@
  * http://engineering.linkedin.com/javascript/vncjs-how-build-javascript-vnc-client-24-hour-hackday
  */
 
-var Proxy = function (client) {
+var Proxy = function (client, appProcessor) {
     //create the socket to connect to remote server on behalf of the client
     var net = require("net");
     var socket = new net.Socket();
@@ -63,6 +63,11 @@ var Proxy = function (client) {
                 }
                 break;
             default:
+                //app related data that the proxy should not be concerned with, e.g., statistics, webusers
+                console.log(msg.action);
+                if (typeof appProcessor === "function") {
+                    appProcessor(client, msg.data);
+                }
                 break;
         }
     });

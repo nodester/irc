@@ -57,19 +57,19 @@ IRCClient.prototype.connect = function () {
 
 IRCClient.prototype.registerNick = function (nick) {
     this.nick = nick;
-    this.client.send("NICK " + nick + "\r\n");
-    this.client.send("USER " + nick + " irc.nodester.com irc.freenode.net :" + nick + " via http://irc.nodester.com\r\n");
+    this.client.send("data", "NICK " + nick + "\r\n");
+    this.client.send("data", "USER " + nick + " irc.nodester.com irc.freenode.net :" + nick + " via http://irc.nodester.com\r\n");
 }
 
 IRCClient.prototype.joinChannel = function (channel) {
     this.channel = channel;
-    this.client.send("JOIN " + channel + "\r\n");
+    this.client.send("data", "JOIN " + channel + "\r\n");
 }
 
 IRCClient.prototype.quit = function (reason) {
     reason = reason || "session closed";
     this.channel = channel;
-    this.client.send("QUIT :" + reason + "\r\n");
+    this.client.send("data", "QUIT :" + reason + "\r\n");
 }
 
 IRCClient.prototype.disconnect = function () {
@@ -77,12 +77,7 @@ IRCClient.prototype.disconnect = function () {
 }
 
 IRCClient.prototype.sendPrivMsg = function (message) {
-    this.client.send("PRIVMSG " + this.channel + " :" + message + "\r\n");
-}
-
-//TODO make this private
-IRCClient.prototype.send = function (message) {
-    this.client.send(message);
+    this.client.send("data", "PRIVMSG " + this.channel + " :" + message + "\r\n");
 }
 
 IRCClient.prototype.requestStatistics = function () {
@@ -341,7 +336,7 @@ var emulateMessage = function (that, message) {
                 message: (message.args[1])
             }));
         } else {
-            that.send("PRIVMSG " + message.nick
+            that.send("data", "PRIVMSG " + message.nick
                     + " :I am using a web client. I can only talk on channel #nodester.\r\n");
         }
         break;
@@ -393,7 +388,7 @@ var emulateMessage = function (that, message) {
      * Handler for a server PING
      */
     case "PING":
-        that.send("PONG :" + message.args[0] + "\r\n");
+        that.send("data", "PONG :" + message.args[0] + "\r\n");
         break
 
     /*
@@ -429,7 +424,7 @@ var emulateMessage = function (that, message) {
 //* e.g., timeout
 //*/
 //irc.addListener('error', function () {
-//client.send(JSON.stringify({
+//client.send("data", JSON.stringify({
 // messagetype: "error"
 //}));
 //});

@@ -122,7 +122,6 @@ $(document).ready(function() {
             chatBody.text("");
             
             //initiate connect to the irc server
-            //ircClient.disconnect();
             ircClient.clearAll();
             ircClient.on("connected", handleOnConnected);
             ircClient.on("disconnected", handleOnDisconnected);
@@ -334,7 +333,7 @@ $(document).ready(function() {
                     return;
                 case "message":
                     appendMessage(obj.from, obj.message, false);
-                    //ircClient.requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "topic":
                     appendMessage("Topic", obj.message, false);
@@ -381,7 +380,7 @@ $(document).ready(function() {
                         nicks.sort(cisort);
                         nicksToList();
                     }
-                    //ircClient.requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "quit":
                 case "part":
@@ -393,7 +392,7 @@ $(document).ready(function() {
                         }
                     }
                     nicksToList();
-                    //ircClient.requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "nick":
                     appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
@@ -411,7 +410,7 @@ $(document).ready(function() {
                     c.updateStats(obj);
                     if (obj.wud == true) {
                         //the webusers list has been changed, we initiate retrieval
-                        ircClient.requestWebUsers();
+                        //ircClient.requestWebUsers();
                     }
                     var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
                     nickLabel.html('<span class="'+header_class+'">Server up for ' + c.getServerTime()

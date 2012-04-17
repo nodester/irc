@@ -67,9 +67,13 @@ Client.prototype.disconnect = function () {
         this.socket.send(JSON.stringify({action: "disconnect"}));
 }
 
-Client.prototype.send = function (data1) {
+/*
+ * "action" could have been set as the 2nd parameter and made non mandatory
+ * but would have made the code less obvious to the eye
+ */
+Client.prototype.send = function (action, data) {
     if (this.sioIsConnected && this.endpointIsConnected) {
-        this.socket.send(JSON.stringify({action: "data", data: data1}));
+        this.socket.send(JSON.stringify({action: action, data: data}));
     }
 }
 
