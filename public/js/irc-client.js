@@ -41,15 +41,15 @@ IRCClient.prototype.connect = function () {
         that.buffer += chunk.data;
         var lines = that.buffer.split("\r\n");
         that.buffer = lines.pop();
-        lines.forEach(function (line) {
-            var message = parseMessage(line, true);
+        for (var i in lines){
+            var message = parseMessage(lines[i], true);
             try {
                 //to make this implementation compatible with the former irc client at irc.nodester.com
                 emulateMessage(that, message);
             } catch ( err ) {
                 that.emit("error", err.message);
             }
-        });
+        }
     });
 
     this.client.on("statistics", function (data) {
