@@ -370,7 +370,7 @@ $(document).ready(function() {
                     logBox.slideToggle();
                     nickLabel.text(nickname);
                     joinBtn.removeAttr("disabled");
-                    //initiate one channel join
+                    //initiate single-channel join
                     ircClient.joinChannel(channel);
                     break;
                 case "join":
@@ -404,16 +404,20 @@ $(document).ready(function() {
                     }
                     nicks.sort(cisort);
                     nicksToList();
-                    //ircClient.requestStatistics(); this call will be needed if the web client will also send commands
+                    ircClient.requestStatistics();
                     break;
                 case "statistics":
                     c.updateStats(obj);
+                    if (obj.wud == true) {
+                        //the webUsers list has been changed, we initiate retrieval
+                        ircClient.requestWebUsers();
+                    }
                     var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
                     nickLabel.html('<span class="'+header_class+'">Server up for ' + c.getServerTime()
                         + ', using ' + c.getMinRss() + '-' + c.getMaxRss() + ' MB of RAM</span> ' + nickname);
                     break;
                 case "webusers":
-                    webNicks = obj.wu;
+                    webNicks = obj.webusers;
                     nicksToList();
                     break;
                 default:

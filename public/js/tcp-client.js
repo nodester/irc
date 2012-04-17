@@ -20,12 +20,16 @@ Client.prototype.connect = function () {
     if (typeof this.socket === "undefined" || this.socket === null) {
         this.socket = io.connect("http://" + window.location.host, {"reconnect": false});
     } else {
-        //these are retries or reconnects
+        //reconnects
         if (this.socket.socket.connected) {
             that.socket.removeAllListeners("connect");
             that.socket.removeAllListeners("disconnect");
             that.socket.removeAllListeners("message");
-            that.socket.send(JSON.stringify({action: "connect", host: that.host, port: that.port}));
+            that.socket.send(JSON.stringify({
+                action: "connect",
+                host: that.host,
+                port: that.port
+            }));
         } else {
             this.socket.socket.reconnect();
         }
@@ -33,7 +37,11 @@ Client.prototype.connect = function () {
 
     this.socket.on("connect", function () {
         that.sioIsConnected = true;
-        that.socket.send(JSON.stringify({action: "connect", host: that.host, port: that.port}));
+        that.socket.send(JSON.stringify({
+            action: "connect",
+            host: that.host,
+            port: that.port
+        }));
     });
     
     this.socket.on("disconnect", function () { 
@@ -66,7 +74,9 @@ Client.prototype.connect = function () {
 
 Client.prototype.disconnect = function () {
     if (this.sioIsConnected)
-        this.socket.send(JSON.stringify({action: "disconnect"}));
+        this.socket.send(JSON.stringify({
+            action: "disconnect"
+        }));
 }
 
 /*
@@ -75,7 +85,10 @@ Client.prototype.disconnect = function () {
  */
 Client.prototype.send = function (action, data) {
     if (this.sioIsConnected && this.endpointIsConnected) {
-        this.socket.send(JSON.stringify({action: action, data: data}));
+        this.socket.send(JSON.stringify({
+            action: action,
+            data: data
+        }));
     }
 }
 

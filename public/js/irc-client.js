@@ -58,12 +58,16 @@ IRCClient.prototype.connect = function () {
             st: data.st,
             min: data.min,
             max: data.max,
-            current: data.current
+            current: data.current,
+            wud: data.wud
         }));
     });
 
     this.client.on("webusers", function (data) {
-        
+        that.emit("data", JSON.stringify({
+            messagetype: "webusers",
+            webusers: data.webUsers
+        }));
     });
 
     this.client.connect();
@@ -98,19 +102,9 @@ IRCClient.prototype.requestStatistics = function () {
     this.client.send("requestStatistics");
 }
 
-IRCClient.prototype.addWebUsers = function (userNick) {
-    
-    this.client.send("requestWebUsers", param);
+IRCClient.prototype.requestWebUsers = function () {
+    this.client.send("requestWebUsers");
 }
-IRCClient.prototype.updateWebUsers = function (formerNick, newNick) {
-    
-    this.client.send("requestWebUsers", param);
-}
-IRCClient.prototype.listWebUsers = function () {
-    
-    this.client.send("requestWebUsers", param);
-}
-
 
 IRCClient.prototype.clearAll = function () {
     this.client.clearAll();
@@ -269,6 +263,9 @@ var emulateMessage = function (that, message) {
      * Handler for join
      */
     case "JOIN":
+        if (that.nick == message.nick) {
+            that.client.send("addWebUsers", that.nick);
+        }
         that.emit("data", JSON.stringify({
             messagetype: "join",
             from: (message.nick),
@@ -382,8 +379,12 @@ var emulateMessage = function (that, message) {
             };
         };
          */
-        if (that.nick == prevNick)
+        if (that.nick == prevNick) {
             that.nick = newNick;
+            //perform an "update" of web users
+            that.client.send("deleteWebUsers", prevNick);
+            that.client.send("addWebUsers", newNick);
+        }
         that.emit("data", JSON.stringify({
             messagetype: "nick",
             from: prevNick,

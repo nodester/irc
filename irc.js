@@ -73,8 +73,10 @@ console.log("IRC#nodester is running on port %d in %s mode", app.address().port,
 
 /*
  * array of nicks that connect through the web interface
+ * and a flag signalling that a webUser refresh is needed on webclient
  */
-var webusers = [];
+var webUsers = [],
+    webUsersIsDirty = false;
 
 /*
  * app specific processor, e.g., statistics, web users
@@ -93,33 +95,50 @@ var appProcessor = function (action, client, msg, socket) {
                     st: startTime,
                     min: minMem,
                     max: maxMem,
-                    current: currMem
+                    current: currMem,
+                    wud: webUsersIsDirty
                 }));
                 break;
             case "requestWebUsers":
-                switch (msg.data) {
-                case "add":
-                    webusers.push(msg.user);
-                    break;
-                case "remove":
-                    for (var i = 0; i < webusers.length; i++) {
-                        if (webusers[i] == msg.user) {
-                            webusers.slice(i,1);
-                            break;
-                        }
+                client.send(JSON.stringify({
+                    action: "webusers",
+                    webUsers: webUsers
+                }));
+                webUsersIsDirty = false;
+                break
+            case "addWebUsers":
+                /*
+                 * at this stage of development we cannot tell which user that was previously
+                 * connected through a web interface left 
+                 * all we can do is make sure we do not have duplicates
+                 * this in time will slow down the webclient operation
+                 */
+                var found = false;
+                for (var i = 0; i < webUsers.length; i++) {
+                    if (webUsers[i] == msg.data) {
+                        found = true;
+                        break;
                     }
-                    break;
-                default: //list
-                    client.send(JSON.stringify({
-                        action: "webusers",
-                        webusers: webusers
-                    }));
                 }
+                if (!found) {
+                    webUsers.push(msg.data);
+                    webUsersIsDirty = true;
+                }
+                break;
+            case "deleteWebUsers":
+                for (var i = 0; i < webUsers.length; i++) {
+                    if (webUsers[i] == msg.data) {
+                        webUsers.slice(i,1);
+                        webUsersIsDirty = true;
+                        break;
+                    }
+                }
+                break;
             default:
             }
             break;
         case "disconnect":
-            
+            socket.write("QUIT :Webclient closed browser.\r\n");
             break;
         default:
     }

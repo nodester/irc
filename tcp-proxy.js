@@ -16,20 +16,27 @@ var Proxy = function (client, appProcessor) {
     socket.on("end", function () {
         socketIsConnected = false;
         if (clientIsConnected)
-            client.send(JSON.stringify({action: "closed"}));
+            client.send(JSON.stringify({
+                action: "closed"
+            }));
     });
     
     socket.on("connect", function () {
         socketIsConnected = true;
         console.log("socket connected");
         if (clientIsConnected)
-            client.send(JSON.stringify({action: "connected"}));
+            client.send(JSON.stringify({
+                action: "connected"
+            }));
     });
     
     socket.on("data", function (data) {
         console.log("RECV:" + data + ", length: " + data.length );
         if (clientIsConnected)
-            client.send(JSON.stringify({action: "data", data: data}));
+            client.send(JSON.stringify({
+                action: "data",
+                data: data
+            }));
     });
     
     //client related
@@ -45,10 +52,12 @@ var Proxy = function (client, appProcessor) {
             if (typeof appProcessor === "function") {
                 appProcessor("disconnect", null, null, socket);
             }
-            socketIsConnected = false;
-            socket.destroy();
+            setTimeout(function () {
+                socketIsConnected = false;
+                socket.destroy();
+                console.log("client disconnected");
+            }, 1000);
         }
-        console.log("client disconnected");   
     });
     
     client.on("message", function (message) {
