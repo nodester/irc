@@ -56,6 +56,8 @@ Client.prototype.connect = function () {
                 that.emit("data", {data: data.data});
                 break;
             default:
+                //app related data that the proxy should not be concerned with, e.g., statistics, webusers
+                that.emit(data.action, data);
         }
     });
     

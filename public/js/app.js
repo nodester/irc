@@ -57,7 +57,7 @@ $(document).ready(function() {
                 top       : 'auto',
                 left      : 'auto'
             },
-            stats = null, //statistics
+            stats = null, //statistics .st .current .min .max
             serverStartTime = null; //server start time
 
         this.getOpts = function() {
@@ -408,10 +408,6 @@ $(document).ready(function() {
                     break;
                 case "statistics":
                     c.updateStats(obj);
-                    if (obj.wud == true) {
-                        //the webusers list has been changed, we initiate retrieval
-                        //ircClient.requestWebUsers();
-                    }
                     var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
                     nickLabel.html('<span class="'+header_class+'">Server up for ' + c.getServerTime()
                         + ', using ' + c.getMinRss() + '-' + c.getMaxRss() + ' MB of RAM</span> ' + nickname);

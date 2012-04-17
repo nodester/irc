@@ -51,7 +51,21 @@ IRCClient.prototype.connect = function () {
             }
         });
     });
-    
+
+    this.client.on("statistics", function (data) {
+        that.emit("data", JSON.stringify({
+            messagetype: "statistics",
+            st: data.st,
+            min: data.min,
+            max: data.max,
+            current: data.current
+        }));
+    });
+
+    this.client.on("webusers", function (data) {
+        
+    });
+
     this.client.connect();
 }
 
@@ -84,9 +98,19 @@ IRCClient.prototype.requestStatistics = function () {
     this.client.send("requestStatistics");
 }
 
-IRCClient.prototype.requestWebUsers = function () {
-    this.client.send("requestWebUsers");
+IRCClient.prototype.addWebUsers = function (userNick) {
+    
+    this.client.send("requestWebUsers", param);
 }
+IRCClient.prototype.updateWebUsers = function (formerNick, newNick) {
+    
+    this.client.send("requestWebUsers", param);
+}
+IRCClient.prototype.listWebUsers = function () {
+    
+    this.client.send("requestWebUsers", param);
+}
+
 
 IRCClient.prototype.clearAll = function () {
     this.client.clearAll();
@@ -336,7 +360,7 @@ var emulateMessage = function (that, message) {
                 message: (message.args[1])
             }));
         } else {
-            that.send("data", "PRIVMSG " + message.nick
+            that.client.send("data", "PRIVMSG " + message.nick
                     + " :I am using a web client. I can only talk on channel #nodester.\r\n");
         }
         break;
@@ -388,7 +412,7 @@ var emulateMessage = function (that, message) {
      * Handler for a server PING
      */
     case "PING":
-        that.send("data", "PONG :" + message.args[0] + "\r\n");
+        that.client.send("data", "PONG :" + message.args[0] + "\r\n");
         break
 
     /*

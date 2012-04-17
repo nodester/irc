@@ -72,11 +72,57 @@ app.listen(process.env.C9_PORT || process.env['app_port'] || 16960);
 console.log("IRC#nodester is running on port %d in %s mode", app.address().port, app.settings.env);
 
 /*
+ * array of nicks that connect through the web interface
+ */
+var webusers = [];
+
+/*
  * app specific processor, e.g., statistics, web users
  */
-var appProcessor = function(client, data) {
-//TODO
-
+var appProcessor = function (action, client, msg, socket) {
+    switch (action) {
+        case "message":
+            switch (msg.action) {
+            case "requestStatistics":
+                /*
+                 * The statistics are gathered every 15 seconds. There will be a lag
+                 * of less than 15 seconds since the last statistics "crop" and the actual value
+                 */
+                client.send(JSON.stringify({
+                    action: "statistics",
+                    st: startTime,
+                    min: minMem,
+                    max: maxMem,
+                    current: currMem
+                }));
+                break;
+            case "requestWebUsers":
+                switch (msg.data) {
+                case "add":
+                    webusers.push(msg.user);
+                    break;
+                case "remove":
+                    for (var i = 0; i < webusers.length; i++) {
+                        if (webusers[i] == msg.user) {
+                            webusers.slice(i,1);
+                            break;
+                        }
+                    }
+                    break;
+                default: //list
+                    client.send(JSON.stringify({
+                        action: "webusers",
+                        webusers: webusers
+                    }));
+                }
+            default:
+            }
+            break;
+        case "disconnect":
+            
+            break;
+        default:
+    }
 }
 
 var io = sio.listen(app);

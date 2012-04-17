@@ -37,6 +37,14 @@ var Proxy = function (client, appProcessor) {
     client.on("disconnect", function () {
         clientIsConnected = false;
         if (socketIsConnected) {
+            /*
+             * app related data that the proxy should not be concerned with:
+             * remove nick from webUsers list
+             * send irc.quit
+             */
+            if (typeof appProcessor === "function") {
+                appProcessor("disconnect", null, null, socket);
+            }
             socketIsConnected = false;
             socket.destroy();
         }
@@ -63,12 +71,17 @@ var Proxy = function (client, appProcessor) {
                 }
                 break;
             default:
-                //app related data that the proxy should not be concerned with, e.g., statistics, webusers
+                /*
+                 * app related data that the proxy should not be concerned with:
+                 * - requestStatistics()
+                 * - addWebUser(nick)
+                 * - updateWebUser(former, current)
+                 * - listWebUsers()
+                 */
                 console.log(msg.action);
                 if (typeof appProcessor === "function") {
-                    appProcessor(client, msg.data);
+                    appProcessor("message", client, msg, null);
                 }
-                break;
         }
     });
 }
