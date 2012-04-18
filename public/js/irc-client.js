@@ -345,7 +345,7 @@ var emulateMessage = function (that, message) {
     /*
      * Handler for private messages
      * There is no private messaging using the web client.
-     * in case o private message is received, a message is sent back to the caller
+     * in case a private message is received, a message is sent back to the caller
      * explaining that there is no privacy!
      */
     case "PRIVMSG":
@@ -444,12 +444,3 @@ var emulateMessage = function (that, message) {
         }
     } 
 };
-///*
-//* Handler for our own client
-//* e.g., timeout
-//*/
-//irc.addListener('error', function () {
-//client.send("data", JSON.stringify({
-// messagetype: "error"
-//}));
-//});
