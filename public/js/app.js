@@ -1,5 +1,6 @@
 $(document).ready(function() {
-    var sock = null,
+    var ircClient = new IRCClient("irc.freenode.net", 6667);
+    var channel = "#nodester",
         rv = null,
         nickname = null,
         nicks = [], //could be an object if later we decide to add the nick attributes (+,... @)
@@ -56,7 +57,7 @@ $(document).ready(function() {
                 top       : 'auto',
                 left      : 'auto'
             },
-            stats = null, //statistics
+            stats = null, //statistics .st .current .min .max
             serverStartTime = null; //server start time
 
         this.getOpts = function() {
@@ -119,14 +120,15 @@ $(document).ready(function() {
             loginWrong.addClass('off');
             loginMsg.removeClass('off');
             chatBody.text("");
-            if (sock !== null && sock.socket.connected === false) {
-                sock.socket.reconnect();
-            } else {
-                sock = io.connect('http://' + window.location.host, {'reconnect': false});
-                sock.on('message', handleMessage);
-                sock.on('disconnect', handleDisconnect);
-                sock.on('connect', handleConnect);
-            };
+            
+            //initiate connect to the irc server
+            ircClient.clearAll();
+            ircClient.on("connected", handleOnConnected);
+            ircClient.on("disconnected", handleOnDisconnected);
+            ircClient.on("closed", handleOnClosed);
+            ircClient.on("error", handleOnError);
+            ircClient.on("data", handleOnData);
+            ircClient.connect();
         } else {
             loginWrong.removeClass('off');
         }
@@ -187,6 +189,7 @@ $(document).ready(function() {
     };
 
     var appendEvent = function (from, event, isSelf, extra) {
+        extra = extra || "no reason";
         var row = $('<tr/>');
         if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
@@ -198,13 +201,20 @@ $(document).ready(function() {
         
         switch (event) {
         case "join":
-            message = '<span class="msg-join">joined the channel</span>';
+            message = '<span class="msg-join">joined (' + extra + ')</span>';
             break;
         case "quit":
+            message = '<span class="msg-quitpart">left (' + extra  + ')</span>';
+            break;
         case "part":
-            message = '<span class="msg-quitpart">left the channel</span>';
+            message = '<span class="msg-quitpart">parted (' + extra  + ')</span>';
             break;
         case "nick":
+            if (isSelf) {
+                //server has automatically changed the nickname
+                nickname = extra;
+                nickLabel.text(nickname);
+            }
             message = '<span class="msg-nick">is now known as ' + extra + '</span>';
             break;
         case "endmotd":
@@ -286,24 +296,22 @@ $(document).ready(function() {
         nickUl.html(content);
     };
 
-    var handleMessage = function (data) {
+    var handleOnData = function (data) {
         var obj = JSON.parse(data);
         if (obj && obj.messagetype) {
             var isSelf = (obj.from == nickname) ? true : false;
             switch (obj.messagetype) {
                 case "433":  //nick already in use
                     window.spinner.stop();
-                    sock.disconnect();
+                    ircClient.disconnect();
                     loginMsg.addClass('off');
                     loginWrong.text("");
                     loginWrong.removeClass('off');
                     loginWrong.text(obj.message);
                     joinBtn.removeAttr("disabled");
                     return;
-                //notice at login
                 case "notice":
                 case "notice-err":
-                //notice for content    
                 case "notice-msg":
                     if (c.getIrcNoticesEnabled() == true) {
                         appendMessage(obj.from, obj.message, false);
@@ -314,18 +322,18 @@ $(document).ready(function() {
                         loginStatus.html(html); 
                     }
                     break;
-                case "error":  //nick already in use
+                case "error":  //any error
                     window.spinner.stop();
-                    sock.disconnect();
+                    ircClient.disconnect();
                     loginMsg.addClass('off');
                     loginWrong.text("");
                     loginWrong.removeClass('off');
-                    loginWrong.text("Oh well, try again!");
+                    loginWrong.text(obj.message);
                     joinBtn.removeAttr("disabled");
                     return;
                 case "message":
                     appendMessage(obj.from, obj.message, false);
-                    requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "topic":
                     appendMessage("Topic", obj.message, false);
@@ -362,19 +370,21 @@ $(document).ready(function() {
                     logBox.slideToggle();
                     nickLabel.text(nickname);
                     joinBtn.removeAttr("disabled");
+                    //initiate single-channel join
+                    ircClient.joinChannel(channel);
                     break;
                 case "join":
-                    appendEvent(obj.from, obj.messagetype, isSelf);
+                    appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
                     if (isSelf == false) {
                         nicks.push(obj.from);
                         nicks.sort(cisort);
                         nicksToList();
                     }
-                    requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "quit":
                 case "part":
-                    appendEvent(obj.from, obj.messagetype, isSelf);
+                    appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
                     for (var i = 0; i < nicks.length; i++) {
                         if (nicks[i] == obj.from) {
                             nicks.splice(i,1);
@@ -382,7 +392,7 @@ $(document).ready(function() {
                         }
                     }
                     nicksToList();
-                    requestStatistics();
+                    ircClient.requestStatistics();
                     break;
                 case "nick":
                     appendEvent(obj.from, obj.messagetype, isSelf, obj.message);
@@ -394,20 +404,20 @@ $(document).ready(function() {
                     }
                     nicks.sort(cisort);
                     nicksToList();
-                    //requestStatistics(); this call will be needed if the web client will also send commends
+                    ircClient.requestStatistics();
                     break;
                 case "statistics":
                     c.updateStats(obj);
                     if (obj.wud == true) {
-                        //the webusers list has been changed, we initiate retrieval
-                        requestWebUsers();
+                        //the webUsers list has been changed, we initiate retrieval
+                        ircClient.requestWebUsers();
                     }
                     var header_class = (c.getStatsEnabled() == true) ? 'header-stats' : 'header-stats off';
                     nickLabel.html('<span class="'+header_class+'">Server up for ' + c.getServerTime()
                         + ', using ' + c.getMinRss() + '-' + c.getMaxRss() + ' MB of RAM</span> ' + nickname);
                     break;
                 case "webusers":
-                    webNicks = obj.wu;
+                    webNicks = obj.webusers;
                     nicksToList();
                     break;
                 default:
@@ -419,14 +429,14 @@ $(document).ready(function() {
         }
     };
 
-    var handleConnect = function () {
+    var handleOnConnected = function () {
         loginMsg.text("");
         loginStatus.html("");
         var nick = window.nick = getNickname(nickText.val());
         loginMsg.text("Joining as " + nick + "...");
         joinBtn.prop("disabled", "disabled");
         c.setIrcNoticesEnabled(false);
-        sock.send(JSON.stringify({ nickname: nick }));
+        ircClient.registerNick(nick);
         //start spinner
         window.target = document.getElementById('join-form');
         window.spinner = new Spinner(c.getOpts()).spin(window.target);
@@ -436,7 +446,7 @@ $(document).ready(function() {
      * set a time delay for disconnect
      * in case we exit the form we do not want the user to see it
      */
-    var handleDisconnect = function () {
+    var handleOnDisconnected = function () {
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
             nicks = [];
@@ -444,26 +454,25 @@ $(document).ready(function() {
         }, 1000);
     };
 
+    /*
+     * TODO
+     * These messages and actions are to be refined later once we cover
+     * the entire existing functionality
+     */
+    var handleOnClosed = function () {
+        appendEvent("*", "disconnected", false);
+        nicks = [];
+        nicksToList();
+    };
+
+    var handleOnError = function () {
+        appendEvent("*", "error", false);
+    };
+
     var sendMessage = function () {
         appendMessage(nickname, textInput.val(), true);
-        sock.send(JSON.stringify({
-            messagetype: "message",
-            message: textInput.val()
-        }));
+        ircClient.sendPrivMsg(textInput.val());
         textInput.val('');
-    };
-
-    /*
-     * requesting statistics is user action triggered
-     * in case it is proven to be to resource intensive
-     * another solution can be sought, e.g., on a timer
-     */
-    var requestStatistics = function () {
-        sock.send(JSON.stringify({ statistics: ""}))
-    };
-
-    var requestWebUsers = function () {
-        sock.send(JSON.stringify({ webusers: ""}))
     };
 
     chatForm.on('submit', function (e) {
@@ -477,22 +486,6 @@ $(document).ready(function() {
         return false;
     });
 
-/*  var ocolors = {
-      'bold'      : ['\033[1m',  '\033[22m'],
-      'italic'    : ['\033[3m',  '\033[23m'],
-      'underline' : ['\033[4m',  '\033[24m'],
-      'inverse'   : ['\033[7m',  '\033[27m'],
-      'white'     : ['\033[37m', '\033[39m'],
-      'grey'      : ['\033[90m', '\033[39m'],
-      'black'     : ['\033[30m', '\033[39m'],
-      'blue'      : ['\033[34m', '\033[39m'],
-      'cyan'      : ['\033[36m', '\033[39m'],
-      'green'     : ['\033[32m', '\033[39m'],
-      'magenta'   : ['\033[35m', '\033[39m'],
-      'red'       : ['\033[31m', '\033[39m'],
-      'yellow'    : ['\033[33m', '\033[39m']
-    };
-*/
     var colors = {
        'p'    :['<p>','</p>'],
        '[1m'  :['<strong>','</strong>'],
