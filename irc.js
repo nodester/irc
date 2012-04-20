@@ -138,7 +138,7 @@ var appProcessor = function (action, client, msg, socket) {
             }
             break;
         case "disconnect":
-            socket.write("QUIT :webclient closed browser\r\n");
+            //socket.write("QUIT :Web user closed browser\r\n");
             break;
         default:
     }
