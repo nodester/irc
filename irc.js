@@ -68,7 +68,7 @@ app.get("/", function (req, res, next) {
     res.render("./public/index.html");
 });
 
-app.listen(process.env.C9_PORT || process.env['app_port'] || 17039);
+app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
 console.log("IRC#nodester is running on port %d in %s mode", app.address().port, app.settings.env);
 
 /*
@@ -145,7 +145,7 @@ var appProcessor = function (action, client, msg, socket) {
 }
 
 var io = sio.listen(app);
-//io.set('log level', 0);
+io.set('log level', 0);
 io.sockets.on("connection", function (socket) {
     var proxy = new Proxy(socket, appProcessor);
 });
