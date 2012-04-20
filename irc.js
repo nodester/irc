@@ -145,7 +145,7 @@ var appProcessor = function (action, client, msg, socket) {
 }
 
 var io = sio.listen(app);
-io.set('log level', 0);
+//io.set('log level', 0);
 io.sockets.on("connection", function (socket) {
     var proxy = new Proxy(socket, appProcessor);
 });
