@@ -68,7 +68,7 @@ app.get("/", function (req, res, next) {
     res.render("./public/index.html");
 });
 
-app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
+app.listen(process.env.C9_PORT || process.env['app_port'] || 16960);
 console.log("IRC#nodester is running on port %d in %s mode", app.address().port, app.settings.env);
 
 /*
@@ -138,7 +138,7 @@ var appProcessor = function (action, client, msg, socket) {
             }
             break;
         case "disconnect":
-            socket.write("QUIT :Web user closed browser\r\n");
+            //socket.write("QUIT :Web user closed browser\r\n");
             break;
         default:
     }

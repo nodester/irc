@@ -18,7 +18,14 @@ Client.prototype.connect = function () {
     var that = this;
     
     if (typeof this.socket === "undefined" || this.socket === null) {
-        this.socket = io.connect("http://" + window.location.host, {"reconnect": false});
+        this.socket = io.connect("http://" + window.location.host, {
+            "reconnect": false,
+            "connect timeout": 65000 //10000
+//            "reconnection delay": 1000, //500
+//            "reconnection limit": Infinity,
+//            "reopen delay": 3000,
+//            "max reconnection attempts": 30, //10            
+        });
     } else {
         //reconnects
         if (this.socket.socket.connected) {
