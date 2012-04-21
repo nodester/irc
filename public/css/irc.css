@@ -90,12 +90,15 @@ a {
 	right: 30px;
 }
 .stats {
-    right: 150px;
+    right: 140px;
+}
+.extras {
+    right: 236px;
 }
 #nickLabel {
     margin-top: 9px;
     position: absolute;
-    right: 270px;
+    right: 346px;
     text-align: right;
 }
 .line-stats {
