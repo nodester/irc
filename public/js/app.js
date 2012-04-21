@@ -46,6 +46,7 @@ $(document).ready(function() {
             bAutoScrollEnabled = true, //allow chat page scroll, default true
             bTonesEnabled = true, //allow tones on pm (yellow) messages, default true
             bStatsEnabled = false, //display statistics
+            bExtrasEnabled = true, //display extras
             opts = {
                 lines     : 12,
                 length    : 7,
@@ -111,6 +112,12 @@ $(document).ready(function() {
         this.getStatsEnabled = function() {
             return bStatsEnabled;
         };
+        this.setExtrasEnabled = function(enabled) {
+            bExtrasEnabled = enabled;
+        };
+        this.getExtrasEnabled = function() {
+            return bExtrasEnabled;
+        };
     };
     var c = new Container();
 
@@ -150,14 +157,19 @@ $(document).ready(function() {
         return name;
     };
     
-    var appendMessage = function (from, message, isSelf) {
+    var appendMessage = function (from, message, isSelf, extra) {
         var row = $('<tr/>');
         if (typeof isSelf !== 'undefined' && isSelf === true) {
             row.addClass('me btn btn-info');
         } else {
             row.addClass('btn');
         }
-        
+        if (extra) {
+            row.addClass('extra');
+            if (!c.getExtrasEnabled())
+                row.addClass('off');
+        }
+
         var row_class = '';
         if (window.nick){
             var reg = window.nick.replace(/\s+/, "|");
@@ -269,7 +281,9 @@ $(document).ready(function() {
         if (extraText.text() == "") {
             //we arrived here for the first time
             var row = $('<tr/>');
-            row.addClass('btn');
+            row.addClass('btn extra');
+            if (!c.getExtrasEnabled())
+                row.addClass('off');
             row.html(
                 '<td><p class="author">' + from + '</p></td>'
                 + '<td class="msg" id="extra">' + message +'</td>');
@@ -328,7 +342,7 @@ $(document).ready(function() {
                 case "notice-err":
                 case "notice-msg":
                     if (c.getIrcNoticesEnabled() == true) {
-                        appendMessage(obj.from, obj.message, false);
+                        appendMessage(obj.from, obj.message, false, true);
                     } else {
                         //redirect to login screen
                         var html = loginStatus.html();
@@ -350,7 +364,7 @@ $(document).ready(function() {
                     ircClient.requestStatistics();
                     break;
                 case "topic":
-                    appendMessage("Topic", obj.message, false);
+                    appendMessage("Topic", obj.message, false, true);
                     break;
                 case "names":
                     for (var i = 0; i < obj.users.length; i++) {
@@ -617,6 +631,18 @@ $(document).ready(function() {
             $('#btnStats').text("Show stats");
             $('.line-stats').addClass('off');
             $('.header-stats').addClass('off');
+        }
+    });
+
+    $('#btnExtras').on('click', function () {
+        //will not remember the extras status yet :), cookies, mmm
+        c.setExtrasEnabled(!c.getExtrasEnabled());
+        if (c.getExtrasEnabled() == true) {
+            $('#btnExtras').text("Hide extras");
+            $('.extra').removeClass('off');
+        } else {
+            $('#btnExtras').text("Show extras");
+            $('.extra').addClass('off');
         }
     });
 
