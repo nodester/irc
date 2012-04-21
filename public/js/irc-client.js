@@ -25,6 +25,10 @@ IRCClient.prototype.connect = function () {
         that.emit("connected");
     });
 
+    this.client.on("reconnecting", function () {
+        that.emit("reconnecting");
+    });
+
     this.client.on("disconnected", function () {
         that.emit("disconnected");
     });

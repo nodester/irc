@@ -19,17 +19,18 @@ Client.prototype.connect = function () {
     
     if (typeof this.socket === "undefined" || this.socket === null) {
         this.socket = io.connect("http://" + window.location.host, {
-            "reconnect": false,
-            "connect timeout": 65000 //10000
-//            "reconnection delay": 1000, //500
-//            "reconnection limit": Infinity,
-//            "reopen delay": 3000,
-//            "max reconnection attempts": 30, //10            
+            "reconnect": true,
+            "connect timeout": 65000, //10000
+            "reconnection delay": 1000, //500
+            "reconnection limit": Infinity,
+            "reopen delay": 3000,
+            "max reconnection attempts": 30 //10
         });
     } else {
         //reconnects
         if (this.socket.socket.connected) {
             that.socket.removeAllListeners("connect");
+            that.socket.removeAllListeners("reconnect");
             that.socket.removeAllListeners("disconnect");
             that.socket.removeAllListeners("message");
             that.socket.send(JSON.stringify({
@@ -51,6 +52,10 @@ Client.prototype.connect = function () {
         }));
     });
     
+    this.socket.on("reconnect", function () {
+        that.emit("reconnecting");
+    });
+
     this.socket.on("disconnect", function () { 
         that.sioIsConnected = false;
         that.endpointIsConnected = false;

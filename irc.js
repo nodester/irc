@@ -57,7 +57,7 @@ var tmr = setInterval(function () {
     if (currMem > maxMem) {
         maxMem = currMem;
     };
-    console.log(statTime, "curr:", currMem, "min:", minMem, "max: ", maxMem);
+    //console.log(statTime, "curr:", currMem, "min:", minMem, "max: ", maxMem);
 }, 15*1000);
 
 process.on("uncaughtException", function (err) {
@@ -138,7 +138,7 @@ var appProcessor = function (action, client, msg, socket) {
             }
             break;
         case "disconnect":
-            //socket.write("QUIT :Web user closed browser\r\n");
+            socket.write("QUIT :webuser\r\n");
             break;
         default:
     }
@@ -147,5 +147,6 @@ var appProcessor = function (action, client, msg, socket) {
 var io = sio.listen(app);
 io.set('log level', 0);
 io.sockets.on("connection", function (socket) {
+    console.log("creating new proxy on socket.io: " + socket.id);
     var proxy = new Proxy(socket, appProcessor);
 });
