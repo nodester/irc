@@ -230,8 +230,12 @@ $(document).ready(function() {
             message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         case "reconnecting":
+            if (iReconnectPostpendCount == 0) {
+                nickname = nickname + iReconnectPostpendCount;
+            } else {
+                nickname = nickname.substring(0, nickname.length-1) + (iReconnectPostpendCount % 10);
+            }
             iReconnectPostpendCount++;
-            nickname = nickname + iReconnectPostpendCount;
             message = '<span class="msg-disconnected">Reconnecting as ' + nickname + '...</span>';
             break;
         case "disconnected":
