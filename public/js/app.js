@@ -239,7 +239,7 @@ $(document).ready(function() {
             message = '<span class="msg-disconnected">Reconnecting as ' + nickname + '...</span>';
             break;
         case "disconnected":
-            message = '<span class="msg-disconnected">You\'ve been disconnected from http://irc.nodester.com/<br /></span>';
+            message = '<span class="msg-disconnected">You\'ve been disconnected from http://irc.nodester.com/</span>';
             message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         default:
