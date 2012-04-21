@@ -9,11 +9,13 @@ var Proxy = function (client, appProcessor) {
     //create the socket to connect to remote server on behalf of the client
     var net = require("net");
     var socket = new net.Socket();
-    socket.setEncoding("utf8");
+    socket.setEncoding("ascii");
+    socket.clientid = client.id;
     var socketIsConnected = false;
     var clientIsConnected = true; //at this stage this can be only true
     
     socket.on("end", function () {
+        console.log("socket END clientid: " + socket.clientid + " on client socket.io id: " + client.id);
         socketIsConnected = false;
         if (clientIsConnected)
             client.send(JSON.stringify({
@@ -22,6 +24,7 @@ var Proxy = function (client, appProcessor) {
     });
     
     socket.on("connect", function () {
+        console.log("socket CONNECT clientid: " + socket.clientid + " on client socket.io id: " + client.id);
         socketIsConnected = true;
         console.log("socket connected");
         if (clientIsConnected)
@@ -31,6 +34,7 @@ var Proxy = function (client, appProcessor) {
     });
     
     socket.on("data", function (data) {
+        console.log("socket DATA clientid: " + socket.clientid + " on client socket.io id: " + client.id);
         console.log("RECV:" + data + ", length: " + data.length );
         if (clientIsConnected)
             client.send(JSON.stringify({
@@ -41,7 +45,12 @@ var Proxy = function (client, appProcessor) {
     
     //client related
     
+    client.on("reconnect", function () {
+        console.log("client on RECONNECT.io socket.io: " + client.id + " for socket clientid:" + socket.clientid);
+    });
+
     client.on("disconnect", function () {
+        console.log("client on DISCONNECT.io socket.io: " + client.id + " for socket clientid:" + socket.clientid);
         clientIsConnected = false;
         if (socketIsConnected) {
             /*
@@ -61,6 +70,7 @@ var Proxy = function (client, appProcessor) {
     });
     
     client.on("message", function (message) {
+        console.log("client on MESSAGE.io socket.io: " + client.id + " for socket clientid:" + socket.clientid);
         msg = JSON.parse(message);
         switch (msg.action) {
             case "connect":

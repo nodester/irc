@@ -32,7 +32,11 @@ $(document).ready(function() {
 
         //used in multi tab completion
         patternPos = -1,
-        prePattern = "";
+        prePattern = "",
+
+        //used in reconnects
+        iEncounteredDisconnect = false,
+        iReconnectPostpendCount = 0;
 
     window.counter = 0;
     nickText.focus();
@@ -124,6 +128,7 @@ $(document).ready(function() {
             //initiate connect to the irc server
             ircClient.clearAll();
             ircClient.on("connected", handleOnConnected);
+            ircClient.on("reconnecting", handleOnReconnecting);
             ircClient.on("disconnected", handleOnDisconnected);
             ircClient.on("closed", handleOnClosed);
             ircClient.on("error", handleOnError);
@@ -224,8 +229,17 @@ $(document).ready(function() {
             message = '<span class="msg-connected">Welcome to http://irc.nodester.com/</span>';
             message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
+        case "reconnecting":
+            if (iReconnectPostpendCount == 0) {
+                nickname = nickname + iReconnectPostpendCount;
+            } else {
+                nickname = nickname.substring(0, nickname.length-1) + (iReconnectPostpendCount % 10);
+            }
+            iReconnectPostpendCount++;
+            message = '<span class="msg-disconnected">Reconnecting as ' + nickname + '...</span>';
+            break;
         case "disconnected":
-            message = '<span class="msg-disconnected">You\'ve been disconnected from http://irc.nodester.com/<br />Cross your fingers and refresh your browser!</span>';
+            message = '<span class="msg-disconnected">You\'ve been disconnected from http://irc.nodester.com/<br /></span>';
             message = message.replace(/(https?:\/\/[-_.a-zA-Z0-9&?\/=\[\]()$!#+:]+)/g, "<a href=\"$1\" target=\"_BLANK\">$1</a>");
             break;
         default:
@@ -359,6 +373,11 @@ $(document).ready(function() {
                     //do nothing
                     break;
                 case "001":
+                    if (iEncounteredDisconnect) {
+                        ircClient.joinChannel(channel);
+                        iEncounteredDisconnect = false;
+                        return;
+                    }
                     //here we use end of motd to signal web irc login completed
                     c.setIrcNoticesEnabled(true);
                     window.spinner.stop();
@@ -430,6 +449,10 @@ $(document).ready(function() {
     };
 
     var handleOnConnected = function () {
+        if (iEncounteredDisconnect) {
+            ircClient.registerNick(nickname);
+            return;
+        }
         loginMsg.text("");
         loginStatus.html("");
         var nick = window.nick = getNickname(nickText.val());
@@ -442,11 +465,16 @@ $(document).ready(function() {
         window.spinner = new Spinner(c.getOpts()).spin(window.target);
     };
     
+    var handleOnReconnecting = function () {
+        appendEvent("*", "reconnecting", false);
+    }
+
     /*
      * set a time delay for disconnect
      * in case we exit the form we do not want the user to see it
      */
     var handleOnDisconnected = function () {
+        iEncounteredDisconnect = true;
         setTimeout( function () {
             appendEvent("*", "disconnected", false);
             nicks = [];
