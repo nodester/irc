@@ -128,7 +128,7 @@ var appProcessor = function (action, client, msg, socket) {
             case "deleteWebUsers":
                 for (var i = 0; i < webUsers.length; i++) {
                     if (webUsers[i] == msg.data) {
-                        webUsers.slice(i,1);
+                        webUsers.splice(i,1);
                         webUsersIsDirty = true;
                         break;
                     }
