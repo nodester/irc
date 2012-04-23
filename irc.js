@@ -21,6 +21,7 @@
 
 var express = require("express"),
     sio = require("socket.io"),
+    fs = require("fs"),
     Proxy = require("./tcp-proxy");
 
 var app = module.exports = express.createServer();
@@ -65,7 +66,9 @@ process.on("uncaughtException", function (err) {
 });
 
 app.get("/", function (req, res, next) {
-    res.render("./public/index.html");
+    fs.readFile(__dirname + '/index.html', 'utf8', function (err, text) {
+        res.send(text);
+    });
 });
 
 app.listen(process.env.C9_PORT || process.env['app_port'] || 80);
